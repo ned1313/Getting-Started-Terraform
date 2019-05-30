@@ -7,3 +7,10 @@
 
 # .tfvars files
 *.tfvars
+
+# .tfplan files
+*.tfplan
+
+# .pem files
+*.pem
+

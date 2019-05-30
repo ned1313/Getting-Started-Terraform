@@ -1,0 +1,4 @@
+terraform init
+terraform plan -var-file="terraform.tfvars" -out m1.tfplan
+terraform apply "m1.tfplan"
+terraform destroy -var-file="terraform.tfvars" 
