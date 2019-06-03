@@ -359,13 +359,6 @@ resource "aws_s3_bucket_object" "graphic" {
 # Azure RM DNS #
 resource "azurerm_dns_cname_record" "elb" {
   name                = "${var.environment_tag}-website"
-  
-  
-  
-  
-  
-  
-  
   zone_name           = "${var.dns_zone_name}"
   resource_group_name = "${var.dns_resource_group}"
   ttl                 = "30"

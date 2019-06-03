@@ -1,0 +1,13 @@
+environment_tag = "prod"
+
+billing_code_tag = "ACCT4815162342"
+
+dns_site_name = "marketing"
+
+dns_zone_name =  "yourzonename.com"
+
+dns_resource_group = "AZURE_RESOURCE_GROUP_NAME_FOR_DNS_ZONE"
+
+instance_count = "6"
+
+subnet_count = "3"
