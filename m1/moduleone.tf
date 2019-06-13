@@ -58,6 +58,7 @@ resource "aws_security_group" "allow_ssh" {
 
 resource "aws_instance" "nginx" {
   #Note if you change the region, you will need to update the AMI
+  #Make sure to use an Amazon Linux version 1 and not Amazon Linux 2 AMI
   ami           = "ami-c58c1dd3" 
   instance_type = "t2.micro"
   key_name        = "${var.key_name}"
