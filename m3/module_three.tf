@@ -6,6 +6,9 @@ variable "aws_access_key" {}
 variable "aws_secret_key" {}
 variable "private_key_path" {}
 variable "key_name" {}
+variable "region" {
+  default = "us-east-1"
+}
 
 ##################################################################################
 # PROVIDERS
@@ -14,8 +17,7 @@ variable "key_name" {}
 provider "aws" {
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
-  #Note if you change the region, you will need to update the AMI
-  region = "us-east-1"
+  region     = var.region
 }
 
 ##################################################################################
@@ -24,7 +26,7 @@ provider "aws" {
 
 data "aws_ami" "aws-linux" {
   most_recent = true
-  owners = ["amazon"]
+  owners      = ["amazon"]
 
   filter {
     name   = "name"
@@ -78,7 +80,6 @@ resource "aws_security_group" "allow_ssh" {
 }
 
 resource "aws_instance" "nginx" {
-  #Note if you change the region, you will need to update the AMI
   ami                    = data.aws_ami.aws-linux.id
   instance_type          = "t2.micro"
   key_name               = var.key_name
