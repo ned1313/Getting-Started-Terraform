@@ -2,14 +2,10 @@ aws_access_key = ""
 
 aws_secret_key = ""
 
-private_key_path = "private_key_path\private_key_file.pem""
+private_key_path = "private_key_path\private_key_file.pem"
 
 bucket_name = "globally-unique-name"
 
-arm_subscription_id = "AZURE_SUBSCRIPTION_ID"
+environment_tag = "dev"
 
-arm_principal = "AZURE_SERVICE_PRINCIPAL_ID"
-
-arm_password = "AZURE_SERVICE_PRINCIPAL_PASSWORD"
-
-tenant_id = "AZURE_SERVICE_PRINCIPAL_TENANT_ID"
+billing_code_tag = "ACCT8675309"

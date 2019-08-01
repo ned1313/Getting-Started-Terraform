@@ -6,10 +6,6 @@ private_key_path = "private_key_path\private_key_file.pem""
 
 bucket_name = "globally-unique-name"
 
-environment_tag = "dev"
-
-billing_code_tag = "ACCT8675309"
-
 arm_subscription_id = "AZURE_SUBSCRIPTION_ID"
 
 arm_principal = "AZURE_SERVICE_PRINCIPAL_ID"
@@ -17,7 +13,3 @@ arm_principal = "AZURE_SERVICE_PRINCIPAL_ID"
 arm_password = "AZURE_SERVICE_PRINCIPAL_PASSWORD"
 
 tenant_id = "AZURE_SERVICE_PRINCIPAL_TENANT_ID"
-
-dns_zone_name =  "yourzonename.com"
-
-dns_resource_group = "AZURE_RESOURCE_GROUP_NAME_FOR_DNS_ZONE"
