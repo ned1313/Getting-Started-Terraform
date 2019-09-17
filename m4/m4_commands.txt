@@ -1,0 +1,21 @@
+#First run
+terraform init
+terraform plan -out m4.tfplan
+terraform apply "m4.tfplan"
+
+terraform show
+terraform output
+
+#Second run
+#Rename the files to use the updated config
+ren modulefour-start.tf modulefour-start.tf.rename
+ren modulefour-update.tf.rename modulefour-update.tf
+
+terraform plan -out m4.tfplan
+terraform apply "m4.tfplan"
+
+terraform destroy
+
+#Set the files back
+ren modulefour-start.tf.rename modulefour-start.tf
+ren modulefour-update.tf modulefour-update.tf.rename

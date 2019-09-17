@@ -4,7 +4,7 @@ aws_secret_key = ""
 
 private_key_path = "private_key_path\private_key_file.pem"
 
-bucket_name = "globally-unique-name"
+bucket_name_prefix = "globo"
 
 environment_tag = "dev"
 
