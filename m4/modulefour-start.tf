@@ -58,7 +58,7 @@ data "aws_ami" "aws-linux" {
 
 # NETWORKING #
 resource "aws_vpc" "vpc" {
-  cidr_block = var.network_address_space
+  cidr_block           = var.network_address_space
   enable_dns_hostnames = "true"
 
 }
@@ -69,10 +69,10 @@ resource "aws_internet_gateway" "igw" {
 }
 
 resource "aws_subnet" "subnet1" {
-  cidr_block        = var.subnet1_address_space
-  vpc_id            = aws_vpc.vpc.id
+  cidr_block              = var.subnet1_address_space
+  vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = "true"
-  availability_zone = data.aws_availability_zones.available.names[0]
+  availability_zone       = data.aws_availability_zones.available.names[0]
 
 }
 
@@ -94,8 +94,8 @@ resource "aws_route_table_association" "rta-subnet1" {
 # SECURITY GROUPS #
 # Nginx security group 
 resource "aws_security_group" "nginx-sg" {
-  name        = "nginx_sg"
-  vpc_id      = aws_vpc.vpc.id
+  name   = "nginx_sg"
+  vpc_id = aws_vpc.vpc.id
 
   # SSH access from anywhere
   ingress {
@@ -124,11 +124,11 @@ resource "aws_security_group" "nginx-sg" {
 
 # INSTANCES #
 resource "aws_instance" "nginx1" {
-  ami           = data.aws_ami.aws-linux.id
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.subnet1.id
+  ami                    = data.aws_ami.aws-linux.id
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.subnet1.id
   vpc_security_group_ids = [aws_security_group.nginx-sg.id]
-  key_name        = var.key_name
+  key_name               = var.key_name
 
   connection {
     type        = "ssh"
@@ -138,7 +138,7 @@ resource "aws_instance" "nginx1" {
 
   }
 
-    provisioner "remote-exec" {
+  provisioner "remote-exec" {
     inline = [
       "sudo yum install nginx -y",
       "sudo service nginx start",
@@ -150,7 +150,7 @@ resource "aws_instance" "nginx1" {
       "sudo cp /home/ec2-user/index.html /usr/share/nginx/html/index.html",
       "sudo cp /home/ec2-user/Globo_logo_Vert.png /usr/share/nginx/html/Globo_logo_Vert.png",
       "sudo logrotate -f /etc/logrotate.conf"
-      
+
     ]
   }
 }
@@ -160,5 +160,5 @@ resource "aws_instance" "nginx1" {
 ##################################################################################
 
 output "aws_instance_public_dns" {
-    value = aws_instance.nginx1.public_dns
+  value = aws_instance.nginx1.public_dns
 }

@@ -61,7 +61,7 @@ data "aws_ami" "aws-linux" {
 
 # NETWORKING #
 resource "aws_vpc" "vpc" {
-  cidr_block = var.network_address_space
+  cidr_block           = var.network_address_space
   enable_dns_hostnames = "true"
 
 }
@@ -72,18 +72,18 @@ resource "aws_internet_gateway" "igw" {
 }
 
 resource "aws_subnet" "subnet1" {
-  cidr_block        = var.subnet1_address_space
-  vpc_id            = aws_vpc.vpc.id
+  cidr_block              = var.subnet1_address_space
+  vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = "true"
-  availability_zone = data.aws_availability_zones.available.names[0]
+  availability_zone       = data.aws_availability_zones.available.names[0]
 
 }
 
 resource "aws_subnet" "subnet2" {
-  cidr_block        = var.subnet2_address_space
-  vpc_id            = aws_vpc.vpc.id
+  cidr_block              = var.subnet2_address_space
+  vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = "true"
-  availability_zone = data.aws_availability_zones.available.names[1]
+  availability_zone       = data.aws_availability_zones.available.names[1]
 
 }
 
@@ -109,8 +109,8 @@ resource "aws_route_table_association" "rta-subnet2" {
 
 # SECURITY GROUPS #
 resource "aws_security_group" "elb-sg" {
-  name        = "nginx_elb_sg"
-  vpc_id      = aws_vpc.vpc.id
+  name   = "nginx_elb_sg"
+  vpc_id = aws_vpc.vpc.id
 
   #Allow HTTP from anywhere
   ingress {
@@ -131,8 +131,8 @@ resource "aws_security_group" "elb-sg" {
 
 # Nginx security group 
 resource "aws_security_group" "nginx-sg" {
-  name        = "nginx_sg"
-  vpc_id      = aws_vpc.vpc.id
+  name   = "nginx_sg"
+  vpc_id = aws_vpc.vpc.id
 
   # SSH access from anywhere
   ingress {
@@ -177,11 +177,11 @@ resource "aws_elb" "web" {
 
 # INSTANCES #
 resource "aws_instance" "nginx1" {
-  ami           = data.aws_ami.aws-linux.id
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.subnet1.id
+  ami                    = data.aws_ami.aws-linux.id
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.subnet1.id
   vpc_security_group_ids = [aws_security_group.nginx-sg.id]
-  key_name        = var.key_name
+  key_name               = var.key_name
 
   connection {
     type        = "ssh"
@@ -201,11 +201,11 @@ resource "aws_instance" "nginx1" {
 }
 
 resource "aws_instance" "nginx2" {
-  ami           = data.aws_ami.aws-linux.id
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.subnet2.id
+  ami                    = data.aws_ami.aws-linux.id
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.subnet2.id
   vpc_security_group_ids = [aws_security_group.nginx-sg.id]
-  key_name        = var.key_name
+  key_name               = var.key_name
 
   connection {
     type        = "ssh"
@@ -229,5 +229,5 @@ resource "aws_instance" "nginx2" {
 ##################################################################################
 
 output "aws_elb_public_dns" {
-    value = aws_elb.web.dns_name
+  value = aws_elb.web.dns_name
 }
