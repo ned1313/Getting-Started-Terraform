@@ -142,15 +142,7 @@ resource "aws_instance" "nginx1" {
     inline = [
       "sudo yum install nginx -y",
       "sudo service nginx start",
-      "sudo cp /home/ec2-user/.s3cfg /root/.s3cfg",
-      "sudo cp /home/ec2-user/nginx /etc/logrotate.d/nginx",
-      "sudo pip install s3cmd",
-      "s3cmd get s3://${aws_s3_bucket.web_bucket.id}/website/index.html .",
-      "s3cmd get s3://${aws_s3_bucket.web_bucket.id}/website/Globo_logo_Vert.png .",
-      "sudo cp /home/ec2-user/index.html /usr/share/nginx/html/index.html",
-      "sudo cp /home/ec2-user/Globo_logo_Vert.png /usr/share/nginx/html/Globo_logo_Vert.png",
-      "sudo logrotate -f /etc/logrotate.conf"
-
+      "echo '<html><head><title>Blue Team Server</title></head><body style=\"background-color:#1F778D\"><p style=\"text-align: center;\"><span style=\"color:#FFFFFF;\"><span style=\"font-size:28px;\">Blue Team</span></span></p></body></html>' | sudo tee /usr/share/nginx/html/index.html"
     ]
   }
 }

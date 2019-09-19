@@ -42,7 +42,7 @@ locals {
     Environment = var.environment_tag
   }
 
-  s3_bucket_name = "${var.environment_tag}-${random_integer.rand.result}"
+  s3_bucket_name = "${var.bucket_name_prefix}-${var.environment_tag}-${random_integer.rand.result}"
 }
 
 ##################################################################################
@@ -217,10 +217,10 @@ resource "aws_elb" "web" {
 }
 
 # INSTANCES #
-resource "aws_instance" "nginx2" {
+resource "aws_instance" "nginx1" {
   ami                    = data.aws_ami.aws-linux.id
   instance_type          = "t2.micro"
-  subnet_id              = aws_subnet.subnet2.id
+  subnet_id              = aws_subnet.subnet1.id
   vpc_security_group_ids = [aws_security_group.nginx-sg.id]
   key_name               = var.key_name
   iam_instance_profile   = aws_iam_instance_profile.nginx_profile.name
@@ -285,10 +285,10 @@ EOF
 
 }
 
-resource "aws_instance" "nginx1" {
+resource "aws_instance" "nginx2" {
   ami                    = data.aws_ami.aws-linux.id
   instance_type          = "t2.micro"
-  subnet_id              = aws_subnet.subnet1.id
+  subnet_id              = aws_subnet.subnet2.id
   vpc_security_group_ids = [aws_security_group.nginx-sg.id]
   key_name               = var.key_name
   iam_instance_profile   = aws_iam_instance_profile.nginx_profile.name
