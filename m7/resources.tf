@@ -1,94 +1,87 @@
 ##################################################################################
-# PROVIDERS
-##################################################################################
-
-provider "aws" {
-  access_key = "${var.aws_access_key}"
-  secret_key = "${var.aws_secret_key}"
-  region     = "us-east-1"
-}
-
-provider "azurerm" {
-  subscription_id = "${var.arm_subscription_id}"
-  client_id = "${var.arm_principal}"
-  client_secret = "${var.arm_password}"
-  tenant_id = "${var.tenant_id}"
-  alias = "arm-1"
-}
-
-##################################################################################
 # DATA
 ##################################################################################
 
 data "aws_availability_zones" "available" {}
 
+data "aws_ami" "aws-linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-hvm*"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 ##################################################################################
 # RESOURCES
 ##################################################################################
 
+#Random ID
+resource "random_integer" "rand" {
+  min = 10000
+  max = 99999
+}
+
 # NETWORKING #
 resource "aws_vpc" "vpc" {
-  cidr_block = "${var.network_address_space}"
+  cidr_block = local.network_address_space[terraform.workspace]
 
-  tags {
-    Name = "${var.environment_tag}-vpc"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
+  tags = merge(local.common_tags, { Name = "${var.environment_tag}-vpc" })
+
 }
 
 resource "aws_internet_gateway" "igw" {
-  vpc_id = "${aws_vpc.vpc.id}"
+  vpc_id = aws_vpc.vpc.id
 
-  tags {
-    Name = "${var.environment_tag}-igw"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
+  tags = merge(local.common_tags, { Name = "${var.environment_tag}-igw" })
 
 }
 
 resource "aws_subnet" "subnet" {
-  count = "${var.subnet_count}"
-  cidr_block = "${cidrsubnet(var.network_address_space, 8, count.index + 1)}"
-  vpc_id = "${aws_vpc.vpc.id}"
-  map_public_ip_on_launch = "true"
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  count                   = local.subnet_count[terraform.workspace]
+  cidr_block              = cidrsubnet(local.network_address_space[terraform.workspace], 8, count.index)
+  vpc_id                  = aws_vpc.vpc.id
+  map_public_ip_on_launch = true
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
 
-  tags {
-    Name = "${var.environment_tag}-subnet-${count.index + 1}"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
+  tags = merge(local.common_tags, { Name = "${var.environment_tag}-subnet${count.index + 1}" })
+
 }
 
 # ROUTING #
 resource "aws_route_table" "rtb" {
-  vpc_id = "${aws_vpc.vpc.id}"
+  vpc_id = aws_vpc.vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.igw.id}"
+    gateway_id = aws_internet_gateway.igw.id
   }
 
-  tags {
-    Name = "${var.environment_tag}-rtb"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
-
+  tags = merge(local.common_tags, { Name = "${var.environment_tag}-rtb" })
 }
 
 resource "aws_route_table_association" "rta-subnet" {
-  count = "${var.subnet_count}"
-  subnet_id      = "${element(aws_subnet.subnet.*.id,count.index)}"
-  route_table_id = "${aws_route_table.rtb.id}"
+  count          = local.subnet_count[terraform.workspace]
+  subnet_id      = aws_subnet.subnet[count.index].id
+  route_table_id = aws_route_table.rtb.id
 }
 
 # SECURITY GROUPS #
 resource "aws_security_group" "elb-sg" {
-  name        = "nginx_elb_sg"
-  vpc_id      = "${aws_vpc.vpc.id}"
+  name   = "nginx_elb_sg"
+  vpc_id = aws_vpc.vpc.id
 
   #Allow HTTP from anywhere
   ingress {
@@ -106,18 +99,13 @@ resource "aws_security_group" "elb-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
-    Name = "${var.environment_tag}-elb-sg"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
-
+  tags = merge(local.common_tags, { Name = "${var.environment_tag}-elb-sg" })
 }
 
 # Nginx security group 
 resource "aws_security_group" "nginx-sg" {
-  name        = "nginx_sg"
-  vpc_id      = "${aws_vpc.vpc.id}"
+  name   = "nginx_sg"
+  vpc_id = aws_vpc.vpc.id
 
   # SSH access from anywhere
   ingress {
@@ -132,7 +120,7 @@ resource "aws_security_group" "nginx-sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["${var.network_address_space}"]
+    cidr_blocks = [var.network_address_space]
   }
 
   # outbound internet access
@@ -143,21 +131,16 @@ resource "aws_security_group" "nginx-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
-    Name = "${var.environment_tag}-nginx-sg"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
-
+  tags = merge(local.common_tags, { Name = "${var.environment_tag}-nginx-sg" })
 }
 
 # LOAD BALANCER #
 resource "aws_elb" "web" {
-  name = "${var.environment_tag}-nginx-elb"
+  name = "nginx-elb"
 
-  subnets         = ["${aws_subnet.subnet.*.id}"]
-  security_groups = ["${aws_security_group.elb-sg.id}"]
-  instances       = ["${aws_instance.nginx.*.id}"]
+  subnets         = aws_subnet.subnet[*].id
+  security_groups = [aws_security_group.elb-sg.id]
+  instances       = aws_instance.nginx[*].id
 
   listener {
     instance_port     = 80
@@ -166,32 +149,33 @@ resource "aws_elb" "web" {
     lb_protocol       = "http"
   }
 
-  tags {
-    Name = "${var.environment_tag}-elb"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
-
+  tags = merge(local.common_tags, { Name = "${var.environment_tag}-elb" })
 }
 
 # INSTANCES #
 resource "aws_instance" "nginx" {
-  count = "${var.instance_count}"
-  ami           = "ami-c58c1dd3"
-  instance_type = "t2.micro"
-  subnet_id     = "${element(aws_subnet.subnet.*.id,count.index % var.subnet_count)}"
-  vpc_security_group_ids = ["${aws_security_group.nginx-sg.id}"]
-  key_name        = "${var.key_name}"
+  count                  = local.instance_count[terraform.workspace]
+  ami                    = data.aws_ami.aws-linux.id
+  instance_type          = local.instance_size[terraform.workspace]
+  subnet_id              = aws_subnet.subnet[count.index % local.subnet_count[terraform.workspace]].id
+  vpc_security_group_ids = [aws_security_group.nginx-sg.id]
+  key_name               = var.key_name
+  iam_instance_profile   = aws_iam_instance_profile.nginx_profile.name
+  depends_on             = [aws_iam_role_policy.allow_s3_all]
 
   connection {
+    type        = "ssh"
+    host        = self.public_ip
     user        = "ec2-user"
-    private_key = "${file(var.private_key_path)}"
+    private_key = file(var.private_key_path)
+
   }
 
   provisioner "file" {
     content = <<EOF
-access_key = ${aws_iam_access_key.write_user.id}
-secret_key = ${aws_iam_access_key.write_user.secret}
+access_key =
+secret_key =
+security_token =
 use_https = True
 bucket_location = US
 
@@ -208,13 +192,15 @@ EOF
     compress
     sharedscripts
     postrotate
-      INSTANCE_ID=`curl --silent http://169.254.169.254/latest/meta-data/instance-id`
-      /usr/local/bin/s3cmd sync /var/log/nginx/access.log-* s3://${aws_s3_bucket.web_bucket.id}/$INSTANCE_ID/nginx/
-      /usr/local/bin/s3cmd sync /var/log/nginx/error.log-* s3://${aws_s3_bucket.web_bucket.id}/$INSTANCE_ID/nginx/
+    endscript
+    lastaction
+        INSTANCE_ID=`curl --silent http://169.254.169.254/latest/meta-data/instance-id`
+        sudo /usr/local/bin/s3cmd sync --config=/home/ec2-user/.s3cfg /var/log/nginx/ s3://${aws_s3_bucket.web_bucket.id}/nginx/$INSTANCE_ID/
     endscript
 }
 
 EOF
+
     destination = "/home/ec2-user/nginx"
   }
 
@@ -234,113 +220,90 @@ EOF
     ]
   }
 
-  tags {
-    Name = "${var.environment_tag}-nginx-${count.index + 1}"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
-
+  tags = merge(local.common_tags, { Name = "${var.environment_tag}-nginx${count.index + 1}" })
 }
 
 # S3 Bucket config#
-resource "aws_iam_user" "write_user" {
-    name = "${var.environment_tag}-s3-write-user"
+resource "aws_iam_role" "allow_nginx_s3" {
+  name = "allow_nginx_s3"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "nginx_profile" {
+  name = "nginx_profile"
+  role = aws_iam_role.allow_nginx_s3.name
+}
+
+resource "aws_iam_role_policy" "allow_s3_all" {
+  name = "allow_s3_all"
+  role = aws_iam_role.allow_nginx_s3.name
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "s3:*"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+                "arn:aws:s3:::${local.s3_bucket_name}",
+                "arn:aws:s3:::${local.s3_bucket_name}/*"
+            ]
+    }
+  ]
+}
+EOF
+
+  }
+
+  resource "aws_s3_bucket" "web_bucket" {
+    bucket        = local.s3_bucket_name
+    acl           = "private"
     force_destroy = true
-}
 
-resource "aws_iam_access_key" "write_user" {
-    user = "${aws_iam_user.write_user.name}"
-}
+    tags = merge(local.common_tags, { Name = "${var.environment_tag}-web-bucket" })
 
-resource "aws_iam_user_policy" "write_user_pol" {
-    name = "write"
-    user = "${aws_iam_user.write_user.name}"
-    policy= <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": "s3:*",
-            "Resource": [
-                "arn:aws:s3:::${var.environment_tag}-${var.bucket_name}",
-                "arn:aws:s3:::${var.environment_tag}-${var.bucket_name}/*"
-            ]
-        }
-   ]
-}
-EOF
-
-}
-
-resource "aws_s3_bucket" "web_bucket" {
-  bucket = "${var.environment_tag}-${var.bucket_name}"
-  acl = "private"
-  force_destroy = true
-
-      policy = <<EOF
-{
-    "Version": "2008-10-17",
-    "Statement": [
-        {
-            "Sid": "PublicReadForGetBucketObjects",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "*"
-            },
-            "Action": "s3:GetObject",
-            "Resource": "arn:aws:s3:::${var.environment_tag}-${var.bucket_name}/*"
-        },
-        {
-            "Sid": "",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "${aws_iam_user.write_user.arn}"
-            },
-            "Action": "s3:*",
-            "Resource": [
-                "arn:aws:s3:::${var.environment_tag}-${var.bucket_name}",
-                "arn:aws:s3:::${var.environment_tag}-${var.bucket_name}/*"
-            ]
-        }
-    ]
-}
-EOF
-
-  tags {
-    Name = "${var.environment_tag}-web_bucket"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
   }
 
-}
+  resource "aws_s3_bucket_object" "website" {
+    bucket = aws_s3_bucket.web_bucket.bucket
+    key    = "/website/index.html"
+    source = "./index.html"
 
-resource "aws_s3_bucket_object" "website" {
-  bucket = "${aws_s3_bucket.web_bucket.bucket}"
-  key    = "/website/index.html"
-  source = "./index.html"
-
-}
-
-resource "aws_s3_bucket_object" "graphic" {
-  bucket = "${aws_s3_bucket.web_bucket.bucket}"
-  key    = "/website/Globo_logo_Vert.png"
-  source = "./Globo_logo_Vert.png"
-
-}
-
-# Azure RM DNS #
-resource "azurerm_dns_cname_record" "elb" {
-  name                = "${var.dns_site_name}"
-  zone_name           = "${var.dns_zone_name}"
-  resource_group_name = "${var.dns_resource_group}"
-  ttl                 = "30"
-  record              = "${aws_elb.web.dns_name}"
-  provider            = "azurerm.arm-1"
-
-  tags {
-    Name = "${var.dns_site_name}"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
   }
-}
+
+  resource "aws_s3_bucket_object" "graphic" {
+    bucket = aws_s3_bucket.web_bucket.bucket
+    key    = "/website/Globo_logo_Vert.png"
+    source = "./Globo_logo_Vert.png"
+
+  }
+
+  # Azure RM DNS #
+  resource "azurerm_dns_cname_record" "elb" {
+    name                = "${var.environment_tag}-website"
+    zone_name           = var.dns_zone_name
+    resource_group_name = var.dns_resource_group
+    ttl                 = "30"
+    record              = aws_elb.web.dns_name
+    provider            = azurerm.arm-1
+
+    tags = merge(local.common_tags, { Name = "${var.environment_tag}-website" })
+  }
