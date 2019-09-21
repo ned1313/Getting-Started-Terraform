@@ -3,17 +3,17 @@
 ##################################################################################
 
 provider "aws" {
-  access_key = "${var.aws_access_key}"
-  secret_key = "${var.aws_secret_key}"
-  region     = "us-east-1"
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_key
+  region     = var.region
 }
 
 provider "azurerm" {
-  subscription_id = "${var.arm_subscription_id}"
-  client_id = "${var.arm_principal}"
-  client_secret = "${var.arm_password}"
-  tenant_id = "${var.tenant_id}"
-  alias = "arm-1"
+  subscription_id = var.arm_subscription_id
+  client_id       = var.arm_principal
+  client_secret   = var.arm_password
+  tenant_id       = var.tenant_id
+  alias           = "arm-1"
 }
 
 ##################################################################################
@@ -22,27 +22,64 @@ provider "azurerm" {
 
 data "aws_availability_zones" "available" {}
 
+data "aws_ami" "aws-linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-hvm*"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+data "template_file" "public_cidrsubnet" {
+  count = var.subnet_count[terraform.workspace]
+
+  template = "$${cidrsubnet(vpc_cidr,8,current_count)}"
+
+  vars = {
+    vpc_cidr      = var.network_address_space[terraform.workspace]
+    current_count = count.index * 2 + 1
+  }
+}
+
 ##################################################################################
 # RESOURCES
 ##################################################################################
 
+#Random ID
+resource "random_integer" "rand" {
+  min = 10000
+  max = 99999
+}
+
 # NETWORKING #
 module "vpc" {
-  source = ".\\Modules\\vpc"
-  name = "${var.environment_tag}"
+  source = "terraform-aws-modules/vpc/aws"
+  name   = "${local.env_name}-vpc"
 
-  cidr = "${var.network_address_space}"
-  azs = "${slice(data.aws_availability_zones.available.names,0,var.subnet_count)}"
-  tags {
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
+  cidr            = var.network_address_space[terraform.workspace]
+  azs             = slice(data.aws_availability_zones.available.names, 0, var.subnet_count[terraform.workspace])
+  public_subnets  = data.template_file.public_cidrsubnet[*].rendered
+  private_subnets = []
+
+  tags = local.common_tags
 }
 
 # SECURITY GROUPS #
 resource "aws_security_group" "elb-sg" {
-  name        = "nginx_elb_sg"
-  vpc_id      = "${module.vpc.vpc_id}"
+  name   = "nginx_elb_sg"
+  vpc_id = module.vpc.vpc_id
 
   #Allow HTTP from anywhere
   ingress {
@@ -60,18 +97,14 @@ resource "aws_security_group" "elb-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
-    Name = "${var.environment_tag}-elb-sg"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
+  tags = merge(local.common_tags, { Name = "${local.env_name}-elb-sg" })
 
 }
 
 # Nginx security group 
 resource "aws_security_group" "nginx-sg" {
-  name        = "nginx_sg"
-  vpc_id      = "${module.vpc.vpc_id}"
+  name   = "nginx_sg"
+  vpc_id = module.vpc.vpc_id
 
   # SSH access from anywhere
   ingress {
@@ -86,7 +119,7 @@ resource "aws_security_group" "nginx-sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["${var.network_address_space}"]
+    cidr_blocks = [var.network_address_space[terraform.workspace]]
   }
 
   # outbound internet access
@@ -97,21 +130,17 @@ resource "aws_security_group" "nginx-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
-    Name = "${var.environment_tag}-nginx-sg"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
+  tags = merge(local.common_tags, { Name = "${local.env_name}-nginx-sg" })
 
 }
 
 # LOAD BALANCER #
 resource "aws_elb" "web" {
-  name = "${var.environment_tag}-nginx-elb"
+  name = "${local.env_name}-nginx-elb"
 
-  subnets         = ["${module.vpc.public_subnets}"]
-  security_groups = ["${aws_security_group.elb-sg.id}"]
-  instances       = ["${aws_instance.nginx.*.id}"]
+  subnets         = module.vpc.public_subnets
+  security_groups = [aws_security_group.elb-sg.id]
+  instances       = aws_instance.nginx[*].id
 
   listener {
     instance_port     = 80
@@ -120,32 +149,34 @@ resource "aws_elb" "web" {
     lb_protocol       = "http"
   }
 
-  tags {
-    Name = "${var.environment_tag}-elb"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
+  tags = merge(local.common_tags, { Name = "${local.env_name}-elb" })
 
 }
 
 # INSTANCES #
 resource "aws_instance" "nginx" {
-  count = "${var.instance_count}"
-  ami           = "ami-c58c1dd3"
-  instance_type = "t2.micro"
-  subnet_id     = "${element(module.vpc.public_subnets,count.index % var.subnet_count)}"
-  vpc_security_group_ids = ["${aws_security_group.nginx-sg.id}"]
-  key_name        = "${var.key_name}"
+  count                  = var.instance_count[terraform.workspace]
+  ami                    = data.aws_ami.aws-linux.id
+  instance_type          = var.instance_size[terraform.workspace]
+  subnet_id              = module.vpc.public_subnets[count.index % var.subnet_count[terraform.workspace]]
+  vpc_security_group_ids = [aws_security_group.nginx-sg.id]
+  key_name               = var.key_name
+  iam_instance_profile   = module.bucket.instance_profile.name
+  depends_on             = [module.bucket]
 
   connection {
+    type        = "ssh"
+    host        = self.public_ip
     user        = "ec2-user"
-    private_key = "${file(var.private_key_path)}"
+    private_key = file(var.private_key_path)
+
   }
 
   provisioner "file" {
-    content = <<EOF
-access_key = ${module.bucket.iam_access_key_id}
-secret_key = ${module.bucket.iam_access_key_secret}
+    content     = <<EOF
+access_key =
+secret_key =
+security_token =
 use_https = True
 bucket_location = US
 
@@ -162,13 +193,15 @@ EOF
     compress
     sharedscripts
     postrotate
-      INSTANCE_ID=`curl --silent http://169.254.169.254/latest/meta-data/instance-id`
-      /usr/local/bin/s3cmd sync /var/log/nginx/access.log-* s3://${module.bucket.bucket_id}/$INSTANCE_ID/nginx/
-      /usr/local/bin/s3cmd sync /var/log/nginx/error.log-* s3://${module.bucket.bucket_id}/$INSTANCE_ID/nginx/
+    endscript
+    lastaction
+        INSTANCE_ID=`curl --silent http://169.254.169.254/latest/meta-data/instance-id`
+        sudo /usr/local/bin/s3cmd sync --config=/home/ec2-user/.s3cfg /var/log/nginx/ s3://${module.bucket.bucket.id}/nginx/$INSTANCE_ID/
     endscript
 }
 
 EOF
+
     destination = "/home/ec2-user/nginx"
   }
 
@@ -179,43 +212,35 @@ EOF
       "sudo cp /home/ec2-user/.s3cfg /root/.s3cfg",
       "sudo cp /home/ec2-user/nginx /etc/logrotate.d/nginx",
       "sudo pip install s3cmd",
-      "s3cmd get s3://${module.bucket.bucket_id}/website/index.html .",
-      "s3cmd get s3://${module.bucket.bucket_id}/website/Globo_logo_Vert.png .",
+      "s3cmd get s3://${module.bucket.bucket.id}/website/index.html .",
+      "s3cmd get s3://${module.bucket.bucket.id}/website/Globo_logo_Vert.png .",
       "sudo cp /home/ec2-user/index.html /usr/share/nginx/html/index.html",
       "sudo cp /home/ec2-user/Globo_logo_Vert.png /usr/share/nginx/html/Globo_logo_Vert.png",
       "sudo logrotate -f /etc/logrotate.conf"
-      
+
     ]
   }
 
-  tags {
-    Name = "${var.environment_tag}-nginx-${count.index + 1}"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
-
+  tags = merge(local.common_tags, { Name = "${local.env_name}-nginx${count.index + 1}" })
 }
 
 # S3 Bucket config#
 module "bucket" {
-  name = "${var.environment_tag}-${var.bucket_name}"
+  name = local.s3_bucket_name
 
-  source = ".\\Modules\\s3"
-  tags = {
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
+  source      = ".\\Modules\\s3"
+  common_tags = local.common_tags
 }
 
 resource "aws_s3_bucket_object" "website" {
-  bucket = "${module.bucket.bucket}"
+  bucket = module.bucket.bucket.id
   key    = "/website/index.html"
   source = "./index.html"
 
 }
 
 resource "aws_s3_bucket_object" "graphic" {
-  bucket = "${module.bucket.bucket}"
+  bucket = module.bucket.bucket.id
   key    = "/website/Globo_logo_Vert.png"
   source = "./Globo_logo_Vert.png"
 
@@ -223,16 +248,12 @@ resource "aws_s3_bucket_object" "graphic" {
 
 # Azure RM DNS #
 resource "azurerm_dns_cname_record" "elb" {
-  name                = "${var.dns_site_name}"
-  zone_name           = "${var.dns_zone_name}"
-  resource_group_name = "${var.dns_resource_group}"
+  name                = "${local.env_name}-website"
+  zone_name           = var.dns_zone_name
+  resource_group_name = var.dns_resource_group
   ttl                 = "30"
-  record              = "${aws_elb.web.dns_name}"
-  provider            = "azurerm.arm-1"
+  record              = aws_elb.web.dns_name
+  provider            = azurerm.arm-1
 
-  tags {
-    Name = "${var.dns_site_name}"
-    BillingCode        = "${var.billing_code_tag}"
-    Environment = "${var.environment_tag}"
-  }
+  tags = merge(local.common_tags, { Name = "${local.env_name}-website" })
 }

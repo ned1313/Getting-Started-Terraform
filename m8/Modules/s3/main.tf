@@ -1,83 +1,58 @@
-variable "name" {}
-variable "tags" {
-    default = {}
-}
+# S3 Bucket config#
+resource "aws_iam_role" "allow_instance_s3" {
+  name = "${var.name}_allow_instance_s3"
 
-resource "aws_s3_bucket" "bucket" {
-  bucket = "${var.name}"
-  acl = "private"
-  force_destroy = "true"
-
-  policy = <<EOF
-{
-    "Version": "2008-10-17",
-    "Statement": [
-        {
-            "Sid": "PublicReadForGetBucketObjects",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "*"
-            },
-            "Action": "s3:GetObject",
-            "Resource": "arn:aws:s3:::${var.name}/*"
-        },
-        {
-            "Sid": "",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "${aws_iam_user.s3.arn}"
-            },
-            "Action": "s3:*",
-            "Resource": [
-                "arn:aws:s3:::${var.name}",
-                "arn:aws:s3:::${var.name}/*"
-            ]
-        }
-    ]
-}
-EOF
-
- tags = "${merge(var.tags, map("Name", format("%s-web-bucket", var.name)))}"
-}
-
-resource "aws_iam_user" "s3" {
-    name = "${var.name}-s3"
-    force_destroy = "true"
-}
-
-resource "aws_iam_access_key" "s3" {
-    user = "${aws_iam_user.s3.name}"
-}
-
-resource "aws_iam_user_policy" "s3_policy" {
-    name = "${var.name}-s3-policy"
-    user = "${aws_iam_user.s3.name}"
-    policy = <<EOF
+  assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
       "Effect": "Allow",
-      "Action": "s3:*",
-      "Resource": [
-        "arn:aws:s3:::${var.name}",
-        "arn:aws:s3:::${var.name}/*"
-      ]
+      "Sid": ""
     }
   ]
 }
 EOF
 }
 
-output "iam_access_key_id" {
-  value = "${aws_iam_access_key.s3.id}"
+resource "aws_iam_instance_profile" "instance_profile" {
+  name = "${var.name}_instance_profile"
+  role = aws_iam_role.allow_instance_s3.name
 }
-output "iam_access_key_secret" {
-  value = "${aws_iam_access_key.s3.secret}"
+
+resource "aws_iam_role_policy" "allow_s3_all" {
+  name = "${var.name}_allow_all"
+  role = aws_iam_role.allow_instance_s3.name
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "s3:*"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+                "arn:aws:s3:::${var.name}",
+                "arn:aws:s3:::${var.name}/*"
+            ]
+    }
+  ]
 }
-output "bucket" {
-    value = "${aws_s3_bucket.bucket.bucket}"
+EOF
+
 }
-output "bucket_id" {
-    value = "${aws_s3_bucket.bucket.id}"
+
+resource "aws_s3_bucket" "web_bucket" {
+  bucket        = var.name
+  acl           = "private"
+  force_destroy = true
+
+  tags = merge(var.common_tags, { Name = "${var.name}-web-bucket" })
+
 }

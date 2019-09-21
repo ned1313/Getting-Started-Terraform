@@ -1,4 +1,22 @@
 ##################################################################################
+# PROVIDERS
+##################################################################################
+
+provider "aws" {
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_key
+  region     = var.region
+}
+
+provider "azurerm" {
+  subscription_id = var.arm_subscription_id
+  client_id       = var.arm_principal
+  client_secret   = var.arm_password
+  tenant_id       = var.tenant_id
+  alias           = "arm-1"
+}
+
+##################################################################################
 # DATA
 ##################################################################################
 
@@ -36,27 +54,27 @@ resource "random_integer" "rand" {
 
 # NETWORKING #
 resource "aws_vpc" "vpc" {
-  cidr_block = local.network_address_space[terraform.workspace]
+  cidr_block = var.network_address_space[terraform.workspace]
 
-  tags = merge(local.common_tags, { Name = "${var.environment_tag}-vpc" })
+  tags = merge(local.common_tags, { Name = "${local.env_name}-vpc" })
 
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
 
-  tags = merge(local.common_tags, { Name = "${var.environment_tag}-igw" })
+  tags = merge(local.common_tags, { Name = "${local.env_name}-igw" })
 
 }
 
 resource "aws_subnet" "subnet" {
-  count                   = local.subnet_count[terraform.workspace]
-  cidr_block              = cidrsubnet(local.network_address_space[terraform.workspace], 8, count.index)
+  count                   = var.subnet_count[terraform.workspace]
+  cidr_block              = cidrsubnet(var.network_address_space[terraform.workspace], 8, count.index)
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = true
   availability_zone       = data.aws_availability_zones.available.names[count.index]
 
-  tags = merge(local.common_tags, { Name = "${var.environment_tag}-subnet${count.index + 1}" })
+  tags = merge(local.common_tags, { Name = "${local.env_name}-subnet${count.index + 1}" })
 
 }
 
@@ -69,11 +87,11 @@ resource "aws_route_table" "rtb" {
     gateway_id = aws_internet_gateway.igw.id
   }
 
-  tags = merge(local.common_tags, { Name = "${var.environment_tag}-rtb" })
+  tags = merge(local.common_tags, { Name = "${local.env_name}-rtb" })
 }
 
 resource "aws_route_table_association" "rta-subnet" {
-  count          = local.subnet_count[terraform.workspace]
+  count          = var.subnet_count[terraform.workspace]
   subnet_id      = aws_subnet.subnet[count.index].id
   route_table_id = aws_route_table.rtb.id
 }
@@ -99,7 +117,7 @@ resource "aws_security_group" "elb-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(local.common_tags, { Name = "${var.environment_tag}-elb-sg" })
+  tags = merge(local.common_tags, { Name = "${local.env_name}-elb-sg" })
 }
 
 # Nginx security group 
@@ -120,7 +138,7 @@ resource "aws_security_group" "nginx-sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = [var.network_address_space]
+    cidr_blocks = [var.network_address_space[terraform.workspace]]
   }
 
   # outbound internet access
@@ -131,12 +149,12 @@ resource "aws_security_group" "nginx-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(local.common_tags, { Name = "${var.environment_tag}-nginx-sg" })
+  tags = merge(local.common_tags, { Name = "${local.env_name}-nginx-sg" })
 }
 
 # LOAD BALANCER #
 resource "aws_elb" "web" {
-  name = "nginx-elb"
+  name = "${local.env_name}-nginx-elb"
 
   subnets         = aws_subnet.subnet[*].id
   security_groups = [aws_security_group.elb-sg.id]
@@ -149,15 +167,15 @@ resource "aws_elb" "web" {
     lb_protocol       = "http"
   }
 
-  tags = merge(local.common_tags, { Name = "${var.environment_tag}-elb" })
+  tags = merge(local.common_tags, { Name = "${local.env_name}-elb" })
 }
 
 # INSTANCES #
 resource "aws_instance" "nginx" {
-  count                  = local.instance_count[terraform.workspace]
+  count                  = var.instance_count[terraform.workspace]
   ami                    = data.aws_ami.aws-linux.id
-  instance_type          = local.instance_size[terraform.workspace]
-  subnet_id              = aws_subnet.subnet[count.index % local.subnet_count[terraform.workspace]].id
+  instance_type          = var.instance_size[terraform.workspace]
+  subnet_id              = aws_subnet.subnet[count.index % var.subnet_count[terraform.workspace]].id
   vpc_security_group_ids = [aws_security_group.nginx-sg.id]
   key_name               = var.key_name
   iam_instance_profile   = aws_iam_instance_profile.nginx_profile.name
@@ -172,7 +190,7 @@ resource "aws_instance" "nginx" {
   }
 
   provisioner "file" {
-    content = <<EOF
+    content     = <<EOF
 access_key =
 secret_key =
 security_token =
@@ -216,16 +234,16 @@ EOF
       "sudo cp /home/ec2-user/index.html /usr/share/nginx/html/index.html",
       "sudo cp /home/ec2-user/Globo_logo_Vert.png /usr/share/nginx/html/Globo_logo_Vert.png",
       "sudo logrotate -f /etc/logrotate.conf"
-      
+
     ]
   }
 
-  tags = merge(local.common_tags, { Name = "${var.environment_tag}-nginx${count.index + 1}" })
+  tags = merge(local.common_tags, { Name = "${local.env_name}-nginx${count.index + 1}" })
 }
 
 # S3 Bucket config#
 resource "aws_iam_role" "allow_nginx_s3" {
-  name = "allow_nginx_s3"
+  name = "${local.env_name}_allow_nginx_s3"
 
   assume_role_policy = <<EOF
 {
@@ -245,12 +263,12 @@ EOF
 }
 
 resource "aws_iam_instance_profile" "nginx_profile" {
-  name = "nginx_profile"
+  name = "${local.env_name}_nginx_profile"
   role = aws_iam_role.allow_nginx_s3.name
 }
 
 resource "aws_iam_role_policy" "allow_s3_all" {
-  name = "allow_s3_all"
+  name = "${local.env_name}_allow_s3_all"
   role = aws_iam_role.allow_nginx_s3.name
 
   policy = <<EOF
@@ -271,39 +289,39 @@ resource "aws_iam_role_policy" "allow_s3_all" {
 }
 EOF
 
-  }
+}
 
-  resource "aws_s3_bucket" "web_bucket" {
-    bucket        = local.s3_bucket_name
-    acl           = "private"
-    force_destroy = true
+resource "aws_s3_bucket" "web_bucket" {
+  bucket        = local.s3_bucket_name
+  acl           = "private"
+  force_destroy = true
 
-    tags = merge(local.common_tags, { Name = "${var.environment_tag}-web-bucket" })
+  tags = merge(local.common_tags, { Name = "${local.env_name}-web-bucket" })
 
-  }
+}
 
-  resource "aws_s3_bucket_object" "website" {
-    bucket = aws_s3_bucket.web_bucket.bucket
-    key    = "/website/index.html"
-    source = "./index.html"
+resource "aws_s3_bucket_object" "website" {
+  bucket = aws_s3_bucket.web_bucket.bucket
+  key    = "/website/index.html"
+  source = "./index.html"
 
-  }
+}
 
-  resource "aws_s3_bucket_object" "graphic" {
-    bucket = aws_s3_bucket.web_bucket.bucket
-    key    = "/website/Globo_logo_Vert.png"
-    source = "./Globo_logo_Vert.png"
+resource "aws_s3_bucket_object" "graphic" {
+  bucket = aws_s3_bucket.web_bucket.bucket
+  key    = "/website/Globo_logo_Vert.png"
+  source = "./Globo_logo_Vert.png"
 
-  }
+}
 
-  # Azure RM DNS #
-  resource "azurerm_dns_cname_record" "elb" {
-    name                = "${var.environment_tag}-website"
-    zone_name           = var.dns_zone_name
-    resource_group_name = var.dns_resource_group
-    ttl                 = "30"
-    record              = aws_elb.web.dns_name
-    provider            = azurerm.arm-1
+# Azure RM DNS #
+resource "azurerm_dns_cname_record" "elb" {
+  name                = "${local.env_name}-website"
+  zone_name           = var.dns_zone_name
+  resource_group_name = var.dns_resource_group
+  ttl                 = "30"
+  record              = aws_elb.web.dns_name
+  provider            = azurerm.arm-1
 
-    tags = merge(local.common_tags, { Name = "${var.environment_tag}-website" })
-  }
+  tags = merge(local.common_tags, { Name = "${local.env_name}-website" })
+}
