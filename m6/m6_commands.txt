@@ -1,0 +1,15 @@
+#Functions testing
+terraform console
+min(42,5,16)
+cidrsubnet(var.network_address_space, 8, 0)
+cidrhost(cidrsubnet(var.network_address_space, 8, 0),5)
+lookup(local.common_tags, "BillingCode", "Unknown")
+lookup(local.common_tags, "Missing", "Unknown")
+local.s3_bucket_name
+
+#Configuration command
+terraform init
+terraform plan -var-file="terraform.tfvars" -out m4.tfplan
+terraform apply "m4.tfplan"
+
+terraform destroy -var-file="terraform.tfvars" 
