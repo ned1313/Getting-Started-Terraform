@@ -49,7 +49,7 @@ data "template_file" "public_cidrsubnet" {
 
   vars = {
     vpc_cidr      = var.network_address_space[terraform.workspace]
-    current_count = count.index * 2 + 1
+    current_count = count.index
   }
 }
 
@@ -67,6 +67,7 @@ resource "random_integer" "rand" {
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
   name   = "${local.env_name}-vpc"
+  version = "2.15.0"
 
   cidr            = var.network_address_space[terraform.workspace]
   azs             = slice(data.aws_availability_zones.available.names, 0, var.subnet_count[terraform.workspace])

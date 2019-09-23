@@ -3,18 +3,4 @@ terraform workspace new Development
 terraform plan -out development.tfplan
 terraform apply "development.tfplan"
 
-terraform workspace new UAT
-terraform plan -out uat.tfplan
-terraform apply "uat.tfplan"
-
-terraform workspace new Production
-terraform plan -out production.tfplan
-terraform apply "production.tfplan"
-
-terraform destroy
-
-terraform workspace select UAT
-terraform destroy
-
-terraform workspace select Development
 terraform destroy
