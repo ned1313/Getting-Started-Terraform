@@ -7,8 +7,8 @@ terraform workspace new UAT
 terraform plan -out uat.tfplan
 terraform apply "uat.tfplan"
 
-$env:AWS_ACCESS_KEY_ID="AKIA6KUVKO2KJ6GS7XHV"
-$env:AWS_SECRET_ACCESS_KEY="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"
+$env:AWS_ACCESS_KEY_ID="AWS_ACCESS_KEY_ID"
+$env:AWS_SECRET_ACCESS_KEY="AWS_SECRET_ACCESS_KEY"
 
 terraform workspace new Production
 terraform plan -out production.tfplan
