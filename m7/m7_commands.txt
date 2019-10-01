@@ -7,6 +7,7 @@ terraform workspace new UAT
 terraform plan -out uat.tfplan
 terraform apply "uat.tfplan"
 
+#Don't forget to remove from tfvars, variables, and resource provider
 $env:AWS_ACCESS_KEY_ID="AWS_ACCESS_KEY_ID"
 $env:AWS_SECRET_ACCESS_KEY="AWS_SECRET_ACCESS_KEY"
 
