@@ -1,0 +1,24 @@
+terraform init
+terraform workspace new Development
+terraform plan -out development.tfplan
+terraform apply "development.tfplan"
+
+terraform workspace new UAT
+terraform plan -out uat.tfplan
+terraform apply "uat.tfplan"
+
+#Don't forget to remove from tfvars, variables, and resource provider
+$env:AWS_ACCESS_KEY_ID="AWS_ACCESS_KEY_ID"
+$env:AWS_SECRET_ACCESS_KEY="AWS_SECRET_ACCESS_KEY"
+
+terraform workspace new Production
+terraform plan -out production.tfplan
+terraform apply "production.tfplan"
+
+terraform destroy
+
+terraform workspace select UAT
+terraform destroy
+
+terraform workspace select Development
+terraform destroy

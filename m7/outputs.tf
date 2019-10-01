@@ -3,9 +3,9 @@
 ##################################################################################
 
 output "aws_elb_public_dns" {
-    value = "${aws_elb.web.dns_name}"
+  value = aws_elb.web.dns_name
 }
 
-output "azure_rm_dns_cname" {
-  value = "${azurerm_dns_cname_record.elb.id}"
+output "cname_record_url" {
+  value = "http://${local.env_name}-website.${var.dns_zone_name}"
 }
