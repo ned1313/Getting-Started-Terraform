@@ -27,7 +27,7 @@ Another issue I have discovered from time to time is that Terraform doesn't much
 
 ## MONEY!!!
 
-Finally, a gentle reminder about cost.  The course will have you creating resources in AWS and Azure.  Some of the resources are not going to be 100% free.  In most cases I have tried to use the [Free-tier](https://aws.amazon.com/free/) when possible, but in some cases I have elected to use a larger size EC2 instance to demonstrate the possibilities with multiple environments.  
+A gentle reminder about cost.  The course will have you creating resources in AWS and Azure.  Some of the resources are not going to be 100% free.  In most cases I have tried to use the [Free-tier](https://aws.amazon.com/free/) when possible, but in some cases I have elected to use a larger size EC2 instance to demonstrate the possibilities with multiple environments.  
 
 The DNS zone in Azure is also not completely free.  You are going to need to buy a DNS domain, if you don't already have one, and set the Name Server to use Azure DNS.  If you go with an off-brand TLD like .xyz, you should be able to pick up a domain name for about $0.99 for the first year.  Azure DNS is about $.50 per zone per month and $0.40 per million queries.  All in, you're looking at about $2 for a DNS zone.
 
