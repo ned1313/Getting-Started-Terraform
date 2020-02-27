@@ -44,7 +44,7 @@ provider "aws" {
 }
 
 provider "azurerm" {
-  version = "~> 1.x"
+  version = "~> 1.0"
   subscription_id = var.arm_subscription_id
   client_id       = var.arm_principal
   client_secret   = var.arm_password
