@@ -8,8 +8,8 @@ sudo service nginx start
 
 # Pagina Inicial
 echo '<html>
-        <head><title>Blue Team Server</title></head>
-        <body style="background-color:#1F778D">
+        <head><title>Green Team Server</title></head>
+        <body style="background-color:#008f39">
             <p style="text-align: center;">
                 <span style="color:#FFFFFF;">
                     <span style="font-size:28px;">Blue Team</span>
