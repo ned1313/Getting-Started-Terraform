@@ -7,7 +7,7 @@ variable "aws_secret_key" {}
 variable "private_key_path" {}
 variable "key_name" {}
 variable "region" {
-  default = "us-east-1"
+  default = "us-west-2"
 }
 
 ##################################################################################
@@ -15,8 +15,8 @@ variable "region" {
 ##################################################################################
 
 provider "aws" {
-  access_key = var.aws_access_key
   secret_key = var.aws_secret_key
+  access_key = var.aws_access_key  
   region     = var.region
 }
 
@@ -101,7 +101,7 @@ resource "aws_instance" "nginx" {
   }
 }
 
-##################################################################################
+#################################################################################
 # OUTPUT
 ##################################################################################
 
