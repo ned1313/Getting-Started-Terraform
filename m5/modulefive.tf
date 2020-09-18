@@ -274,6 +274,7 @@ EOF
       "sudo pip install s3cmd",
       "s3cmd get s3://${aws_s3_bucket.web_bucket.id}/website/index.html .",
       "s3cmd get s3://${aws_s3_bucket.web_bucket.id}/website/Globo_logo_Vert.png .",
+      "sudo rm /usr/share/nginx/html/index.html",
       "sudo cp /home/ec2-user/index.html /usr/share/nginx/html/index.html",
       "sudo cp /home/ec2-user/Globo_logo_Vert.png /usr/share/nginx/html/Globo_logo_Vert.png",
       "sudo logrotate -f /etc/logrotate.conf"
@@ -342,6 +343,7 @@ EOF
       "sudo pip install s3cmd",
       "s3cmd get s3://${aws_s3_bucket.web_bucket.id}/website/index.html .",
       "s3cmd get s3://${aws_s3_bucket.web_bucket.id}/website/Globo_logo_Vert.png .",
+      "sudo rm /usr/share/nginx/html/index.html",
       "sudo cp /home/ec2-user/index.html /usr/share/nginx/html/index.html",
       "sudo cp /home/ec2-user/Globo_logo_Vert.png /usr/share/nginx/html/Globo_logo_Vert.png",
       "sudo logrotate -f /etc/logrotate.conf"
