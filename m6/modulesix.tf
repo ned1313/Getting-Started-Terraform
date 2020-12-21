@@ -1,4 +1,17 @@
 ##################################################################################
+# CONFIGURATION (for Terraform > 0.12)
+##################################################################################
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 2.0"
+
+    }
+  }
+}
+
+##################################################################################
 # VARIABLES
 ##################################################################################
 
@@ -44,12 +57,17 @@ provider "aws" {
 }
 
 provider "azurerm" {
-  version = "~> 1.0"
   subscription_id = var.arm_subscription_id
   client_id       = var.arm_principal
   client_secret   = var.arm_password
   tenant_id       = var.tenant_id
   alias           = "arm-1"
+  
+  #Added when using service principal with limited permissions
+  skip_provider_registration = true
+
+  #Required for version 2.0 of provider
+  features {}
 }
 
 ##################################################################################
