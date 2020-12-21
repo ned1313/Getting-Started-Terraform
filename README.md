@@ -2,6 +2,8 @@
 
 Welcome to Terraform - Getting Started.  These exercise files are meant to accompany my course on [Pluralsight](https://app.pluralsight.com/library/courses/terraform-getting-started).  The course was developed using version 0.12.5 of Terraform.  As far as I know there are no coming changes that will significantly impact the validity of these exercise files.  But I also don't control all the plug-ins, providers, and modules used by the configurations. 
 
+**UPDATE** - 2020-12-21: The exercise files have been updated for compatibility with Terraform version 0.14.3. There are several changes in the default behavior of Terraform regarding plans, provider version locking, and diffs. Be sure to check out the full [CHANGELOG](https://github.com/hashicorp/terraform/blob/master/CHANGELOG.md) over on their GitHub for more details.
+
 ## Using the files
 
 Each folder represents a module from the course and is completely self contained.  In each module there will be an example of the *tfvars* file that you will use named *terraform.tfvars.example*.  Simply update the contents of the file and rename it *terraform.tfvars*.  Due to the sensitive nature of the information you place in the *tfvars* file, **do not** check it into source control, especially a public repository.  Some of us - *read me* - have made that mistake before and had to delete AWS access keys post-haste.
@@ -21,6 +23,28 @@ The json output will include a KeyMaterial section.  Copy and paste the contents
 
 If you are using Windows, remember that the file path backslashes need to be doubled, since the single backslash is the escape character for other special characters.  For instance, the path `C:\Users\Ned\mykey.pem` should be entered as `C:\\Users\\Ned\\mykey.pem`.
 
+## Azure Account
+
+Some of the modules also include an Azure Account and public domain using the Azure DNS service. If you don't have a public domain, you can get an `xyz` domain for about $2. You can also just make up a domain like `tacos.local` and add it as an zone in Azure DNS. The resulting addresses won't be publicly accessible, but you'll at least get a feeling for how it would have worked. 
+
+You can create a service principal in Azure by using the Cloud Shell and following the directions found in Microsoft's [documentation](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli). Make sure to grant the service principal Contributor permissions to the Azure DNS zone. I usually just give it Contributor permissions on the resource group holding the Azure DNS zone. The commands would be like this:
+
+```bash
+# Get the Subscription Id 
+subId=$(az account show --query id -o tsv)
+echo $subId
+# Set the resource group with the Azure DNS zone in it
+rg=DNS_RESOURCE_GROUP
+az ad sp create-for-rbac \
+  --name GettingStartedTerraform \
+  --role Contributor \
+  --scope /subscriptions/$subId/resourceGroups/$rg
+```
+
+Make a note of the `appId`, `password`, and `tenant` in the output. Also grab the subscription ID stored in the `$subId` variable.
+
+I've been asked if you can do the whole thing with AWS Route 53 instead. You can! And that would be an excellent challenge to undertake with your new Terraform chops. I chose to include Azure to demonstrate the multicloud nature of Terraform.
+
 ## Line Endings
 
 Another issue I have discovered from time to time is that Terraform doesn't much like the Windows style of ending a line with both a Carriage Return (CR) and a Line Feed (LF), commonly referred to as CRLF.  If you are experiencing strange parsing issues, change the line ending to be Line Feed (LF) only.  In VS Code this can be down by clicking on the CRLF in the lower right corner and changing it to LF.
@@ -35,9 +59,9 @@ When you complete an exercise in the course, be sure to tear down the infrastruc
 
 ## Certification
 
-HashiCorp will be releasing the *Terraform Certified Associate* certification in the near future - depending on when you're reading this it might already be out.  You might be wondering if this course fully prepares you for the cert.  **It does not.**  Taking this course along with the [Deep Dive - Terraform](https://app.pluralsight.com/library/courses/deep-dive-terraform) course on Pluralsight will meet most of the learning objectives for the certification, but there is no substitute for running the software on your own and hacking away.
+HashiCorp has released the Terraform Certified Associate certification..  You might be wondering if this course fully prepares you for the cert.  **It does not.**  Taking this course along with the [Deep Dive - Terraform](https://app.pluralsight.com/library/courses/deep-dive-terraform) course on Pluralsight will meet most of the learning objectives for the certification, but there is no substitute for running the software on your own and hacking away.
 
-I am working on a certification guide with two other authors, and I will provide a link once that is ready.  This is an unofficial guide, but I believe in concert with the Pluralsight courses you will be in a good position to sit the exam.
+I have coauthored a certification guide which you can find on [Leanpub](https://leanpub.com/terraform-certified/). This is an unofficial guide, but I believe in concert with the Pluralsight courses you will be in a good position to sit the exam.
 
 ## Conclusion
 
