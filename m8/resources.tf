@@ -85,7 +85,7 @@ resource "random_integer" "rand" {
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
   name   = "${local.env_name}-vpc"
-  version = "~>2.0"
+  version = "~> 2.0"
 
   cidr            = var.network_address_space[terraform.workspace]
   azs             = slice(data.aws_availability_zones.available.names, 0, var.subnet_count[terraform.workspace])
