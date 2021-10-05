@@ -1,5 +1,0 @@
-terraform init
-terraform plan -out m5.tfplan
-terraform apply "m5.tfplan"
-
-terraform destroy
