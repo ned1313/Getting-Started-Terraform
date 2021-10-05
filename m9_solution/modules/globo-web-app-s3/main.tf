@@ -17,6 +17,9 @@ resource "aws_iam_role" "allow_instance_s3" {
   ]
 }
 EOF
+
+  tags = var.common_tags
+
 }
 
 resource "aws_iam_instance_profile" "instance_profile" {
@@ -53,6 +56,43 @@ resource "aws_s3_bucket" "web_bucket" {
   acl           = "private"
   force_destroy = true
 
-  tags = merge(var.common_tags, { Name = "${var.name}-web-bucket" })
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "${var.elb_service_account_arn}"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::${var.name}/alb-logs/*"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "delivery.logs.amazonaws.com"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::${var.name}/alb-logs/*",
+      "Condition": {
+        "StringEquals": {
+          "s3:x-amz-acl": "bucket-owner-full-control"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "delivery.logs.amazonaws.com"
+      },
+      "Action": "s3:GetBucketAcl",
+      "Resource": "arn:aws:s3:::${var.name}"
+    }
+  ]
+}
+    POLICY
+
+  tags = var.common_tags
 
 }
