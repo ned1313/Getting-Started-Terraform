@@ -1,6 +1,6 @@
 # S3 Bucket config#
-resource "aws_iam_role" "allow_nginx_s3" {
-  name = "allow_nginx_s3"
+resource "aws_iam_role" "allow_instance_s3" {
+  name = "${var.name}_allow_instance_s3"
 
   assume_role_policy = <<EOF
 {
@@ -18,19 +18,18 @@ resource "aws_iam_role" "allow_nginx_s3" {
 }
 EOF
 
-  tags = local.common_tags
+  tags = var.common_tags
+
 }
 
-resource "aws_iam_instance_profile" "nginx_profile" {
-  name = "nginx_profile"
-  role = aws_iam_role.allow_nginx_s3.name
-
-  tags = local.common_tags
+resource "aws_iam_instance_profile" "instance_profile" {
+  name = "${var.name}_instance_profile"
+  role = aws_iam_role.allow_instance_s3.name
 }
 
 resource "aws_iam_role_policy" "allow_s3_all" {
-  name = "allow_s3_all"
-  role = aws_iam_role.allow_nginx_s3.name
+  name = "${var.name}_allow_all"
+  role = aws_iam_role.allow_instance_s3.name
 
   policy = <<EOF
 {
@@ -42,8 +41,8 @@ resource "aws_iam_role_policy" "allow_s3_all" {
       ],
       "Effect": "Allow",
       "Resource": [
-                "arn:aws:s3:::${local.s3_bucket_name}",
-                "arn:aws:s3:::${local.s3_bucket_name}/*"
+                "arn:aws:s3:::${var.name}",
+                "arn:aws:s3:::${var.name}/*"
             ]
     }
   ]
@@ -53,7 +52,7 @@ EOF
 }
 
 resource "aws_s3_bucket" "web_bucket" {
-  bucket        = local.s3_bucket_name
+  bucket        = var.name
   acl           = "private"
   force_destroy = true
 
@@ -64,10 +63,10 @@ resource "aws_s3_bucket" "web_bucket" {
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "${data.aws_elb_service_account.root.arn}"
+        "AWS": "${var.elb_service_account_arn}"
       },
       "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::${local.s3_bucket_name}/alb-logs/*"
+      "Resource": "arn:aws:s3:::${var.name}/alb-logs/*"
     },
     {
       "Effect": "Allow",
@@ -75,7 +74,7 @@ resource "aws_s3_bucket" "web_bucket" {
         "Service": "delivery.logs.amazonaws.com"
       },
       "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::${local.s3_bucket_name}/alb-logs/*",
+      "Resource": "arn:aws:s3:::${var.name}/alb-logs/*",
       "Condition": {
         "StringEquals": {
           "s3:x-amz-acl": "bucket-owner-full-control"
@@ -88,30 +87,12 @@ resource "aws_s3_bucket" "web_bucket" {
         "Service": "delivery.logs.amazonaws.com"
       },
       "Action": "s3:GetBucketAcl",
-      "Resource": "arn:aws:s3:::${local.s3_bucket_name}"
+      "Resource": "arn:aws:s3:::${var.name}"
     }
   ]
 }
     POLICY
 
-  tags = local.common_tags
-
-}
-
-resource "aws_s3_bucket_object" "website" {
-  bucket = aws_s3_bucket.web_bucket.bucket
-  key    = "/website/index.html"
-  source = "./website/index.html"
-
-  tags = local.common_tags
-
-}
-
-resource "aws_s3_bucket_object" "graphic" {
-  bucket = aws_s3_bucket.web_bucket.bucket
-  key    = "/website/Globo_logo_Vert.png"
-  source = "./website/Globo_logo_Vert.png"
-
-  tags = local.common_tags
+  tags = var.common_tags
 
 }

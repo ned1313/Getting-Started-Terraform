@@ -21,14 +21,13 @@ resource "aws_instance" "nginx1" {
 
   user_data = <<EOF
 #! /bin/bash
-sudo pip install s3cmd
 sudo amazon-linux-extras install -y nginx1
 sudo service nginx start
-s3cmd get s3://${aws_s3_bucket.web_bucket.id}/website/index.html .
-s3cmd get s3://${aws_s3_bucket.web_bucket.id}/website/Globo_logo_Vert.png .
+aws s3 cp s3://${aws_s3_bucket.web_bucket.id}/website/index.html /home/ec2-user/index.html
+aws s3 cp s3://${aws_s3_bucket.web_bucket.id}/website/Globo_logo_Vert.png /home/ec2-user/Globo_logo_Vert.png
 sudo rm /usr/share/nginx/html/index.html
-sudo mv /home/ec2-user/index.html /usr/share/nginx/html/index.html
-sudo mv /home/ec2-user/Globo_logo_Vert.png /usr/share/nginx/html/Globo_logo_Vert.png
+sudo cp /home/ec2-user/index.html /usr/share/nginx/html/index.html
+sudo cp /home/ec2-user/Globo_logo_Vert.png /usr/share/nginx/html/Globo_logo_Vert.png
 EOF
 
   tags = local.common_tags
@@ -43,14 +42,13 @@ resource "aws_instance" "nginx2" {
 
   user_data = <<EOF
 #! /bin/bash
-sudo pip install s3cmd
 sudo amazon-linux-extras install -y nginx1
 sudo service nginx start
-s3cmd get s3://${aws_s3_bucket.web_bucket.id}/website/index.html .
-s3cmd get s3://${aws_s3_bucket.web_bucket.id}/website/Globo_logo_Vert.png .
+aws s3 cp s3://${aws_s3_bucket.web_bucket.id}/website/index.html /home/ec2-user/index.html
+aws s3 cp s3://${aws_s3_bucket.web_bucket.id}/website/Globo_logo_Vert.png /home/ec2-user/Globo_logo_Vert.png
 sudo rm /usr/share/nginx/html/index.html
-sudo mv /home/ec2-user/index.html /usr/share/nginx/html/index.html
-sudo mv /home/ec2-user/Globo_logo_Vert.png /usr/share/nginx/html/Globo_logo_Vert.png
+sudo cp /home/ec2-user/index.html /usr/share/nginx/html/index.html
+sudo cp /home/ec2-user/Globo_logo_Vert.png /usr/share/nginx/html/Globo_logo_Vert.png
 EOF
 
   tags = local.common_tags
