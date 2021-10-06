@@ -22,7 +22,7 @@ module "vpc" {
   map_public_ip_on_launch = var.map_public_ip_on_launch
 
   tags = merge(local.common_tags, {
-    name = "${local.name_prefix}-vpc"
+    Name = "${local.name_prefix}-vpc"
   })
 
 }

@@ -10,19 +10,19 @@ data "aws_availability_zones" "available" {}
 
 # NETWORKING #
 module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+  source  = "terraform-aws-modules/vpc/aws"
   version = "~> 3.0"
 
-  cidr = var.vpc_cidr_block
-  azs = slice(data.aws_availability_zones.available.names,0,(var.vpc_subnet_count))
-  public_subnets = [for subnet in range(var.vpc_subnet_count): cidrsubnet(var.vpc_cidr_block, 8, subnet)]
+  cidr           = var.vpc_cidr_block[terraform.workspace]
+  azs            = slice(data.aws_availability_zones.available.names, 0, (var.vpc_subnet_count[terraform.workspace]))
+  public_subnets = [for subnet in range(var.vpc_subnet_count[terraform.workspace]) : cidrsubnet(var.vpc_cidr_block[terraform.workspace], 8, subnet)]
 
-  enable_nat_gateway = false  
-  enable_dns_hostnames = var.enable_dns_hostnames
+  enable_nat_gateway      = false
+  enable_dns_hostnames    = var.enable_dns_hostnames
   map_public_ip_on_launch = var.map_public_ip_on_launch
 
   tags = merge(local.common_tags, {
-    name = "${local.name_prefix}-vpc"
+    Name = "${local.name_prefix}-vpc"
   })
 
 }
@@ -63,7 +63,7 @@ resource "aws_security_group" "nginx-sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr_block]
+    cidr_blocks = [var.vpc_cidr_block[terraform.workspace]]
   }
 
   # outbound internet access

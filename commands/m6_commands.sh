@@ -1,4 +1,4 @@
-# Instead of storing our AWS keys in a text file, we will instead store
+# Instead of storing our AWS keys in input variables, we will instead store
 # them in environment variables. The AWS provider will check for values
 # stored in AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.
 

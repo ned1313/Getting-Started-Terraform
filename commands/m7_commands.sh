@@ -6,6 +6,7 @@ terraform console
 
 # Now we can try some different functions and syntax
 min(42,5,16)
+lower("TACOCAT")
 cidrsubnet(var.vpc_cidr_block, 8, 0)
 cidrhost(cidrsubnet(var.vpc_cidr_block, 8, 0),5)
 lookup(local.common_tags, "company", "Unknown")

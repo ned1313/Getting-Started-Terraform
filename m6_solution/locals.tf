@@ -6,8 +6,9 @@ resource "random_integer" "rand" {
 
 locals {
   common_tags = {
-    company = "Globomantics"
-    project = "8675309"
+    company      = var.company
+    project      = var.project
+    billing_code = var.billing_code
   }
 
   s3_bucket_name = "globo-web-app-${random_integer.rand.result}"

@@ -1,6 +1,7 @@
 locals {
   common_tags = {
-      company = "Globomantics"
-      project = "8675309"
+    company      = var.company
+    project      = var.project
+    billing_code = var.billing_code
   }
 }

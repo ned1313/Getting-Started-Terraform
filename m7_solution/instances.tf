@@ -25,7 +25,7 @@ resource "aws_instance" "nginx" {
   })
 
   tags = merge(local.common_tags, {
-    name = "${local.name_prefix}-nginx-${count.index}"
+    Name = "${local.name_prefix}-nginx-${count.index}"
   })
 
 }

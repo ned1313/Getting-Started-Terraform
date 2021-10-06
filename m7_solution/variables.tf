@@ -36,7 +36,7 @@ variable "map_public_ip_on_launch" {
 
 variable "instance_type" {
   type        = string
-  description = "Type for EC2 Instnace"
+  description = "Type for EC2 Instance"
   default     = "t2.micro"
 }
 
@@ -44,4 +44,20 @@ variable "instance_count" {
   type        = number
   description = "Number of instances to create in VPC"
   default     = 2
+}
+
+variable "company" {
+  type        = string
+  description = "Company name for resource tagging"
+  default     = "Globomantics"
+}
+
+variable "project" {
+  type        = string
+  description = "Project name for resource tagging"
+}
+
+variable "billing_code" {
+  type        = string
+  description = "Billing code for resource tagging"
 }

@@ -1,5 +1,5 @@
 module "web_app_s3" {
-  name = local.s3_bucket_name
+  name                    = local.s3_bucket_name
   elb_service_account_arn = data.aws_elb_service_account.root.arn
 
   source      = "./modules/globo-web-app-s3"

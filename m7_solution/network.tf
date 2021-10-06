@@ -14,7 +14,7 @@ resource "aws_vpc" "vpc" {
   enable_dns_hostnames = var.enable_dns_hostnames
 
   tags = merge(local.common_tags, {
-    name = "${local.name_prefix}-vpc"
+    Name = "${local.name_prefix}-vpc"
   })
 }
 
@@ -22,7 +22,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
 
   tags = merge(local.common_tags, {
-    name = "${local.name_prefix}-igw"
+    Name = "${local.name_prefix}-igw"
   })
 }
 
@@ -34,7 +34,7 @@ resource "aws_subnet" "subnets" {
   availability_zone       = data.aws_availability_zones.available.names[count.index]
 
   tags = merge(local.common_tags, {
-    name = "${local.name_prefix}-subnet-${count.index}"
+    Name = "${local.name_prefix}-subnet-${count.index}"
   })
 }
 
@@ -48,7 +48,7 @@ resource "aws_route_table" "rtb" {
   }
 
   tags = merge(local.common_tags, {
-    name = "${local.name_prefix}-rtb"
+    Name = "${local.name_prefix}-rtb"
   })
 }
 
