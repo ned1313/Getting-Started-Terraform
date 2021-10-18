@@ -1,7 +1,7 @@
 locals {
   common_tags = {
     company      = var.company
-    project      = var.project
+    project      = "${var.company}-${var.project}"
     billing_code = var.billing_code
   }
 }
