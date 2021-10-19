@@ -4,8 +4,9 @@
 # to discover availability zones, add subnets, and add an
 # application load balancer, target group, load balancer listener
 # and target group attachment.
+terraform state list
+terraform state show aws_instance.nginx1
 
-terraform init
 terraform validate
 
 # In case you don't have them set anymore don't forget to run the export commands
