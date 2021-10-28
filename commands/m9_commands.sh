@@ -3,8 +3,17 @@
 # separate state files for each workspace. We are going to make use of the 
 # terraform.workspace value for naming and dynamic configuration values.
 
-terraform init
+# Prepare config
+terraform fmt
 terraform validate
+
+# For Linux and MacOS
+export AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY
+export AWS_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
+
+# For PowerShell
+$env:AWS_ACCESS_KEY_ID="YOUR_ACCESS_KEY"
+$env:AWS_SECRET_ACCESS_KEY="YOUR_SECRET_ACCESS_KEY"
 
 terraform workspace new Development
 terraform workspace list
