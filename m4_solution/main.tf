@@ -5,7 +5,7 @@
 provider "aws" {
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
-  region = var.aws_region
+  region     = var.aws_region
 }
 
 ##################################################################################
@@ -24,7 +24,7 @@ data "aws_ssm_parameter" "ami" {
 resource "aws_vpc" "vpc" {
   cidr_block           = var.vpc_cidr_block
   enable_dns_hostnames = var.enable_dns_hostnames
-  
+
   tags = local.common_tags
 }
 

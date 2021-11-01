@@ -1,9 +1,9 @@
 module "web_app_s3" {
-  name                    = local.s3_bucket_name
-  elb_service_account_arn = data.aws_elb_service_account.root.arn
+  source = "./modules/globo-web-app-s3"
 
-  source      = "./modules/globo-web-app-s3"
-  common_tags = local.common_tags
+  bucket_name             = local.s3_bucket_name
+  elb_service_account_arn = data.aws_elb_service_account.root.arn
+  common_tags             = local.common_tags
 }
 
 resource "aws_s3_bucket_object" "website" {

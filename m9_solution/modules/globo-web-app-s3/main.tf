@@ -1,6 +1,6 @@
 # S3 Bucket config#
 resource "aws_iam_role" "allow_instance_s3" {
-  name = "${var.name}_allow_instance_s3"
+  name = "${var.bucket_name}_allow_instance_s3"
 
   assume_role_policy = <<EOF
 {
@@ -23,12 +23,12 @@ EOF
 }
 
 resource "aws_iam_instance_profile" "instance_profile" {
-  name = "${var.name}_instance_profile"
+  name = "${var.bucket_name}_instance_profile"
   role = aws_iam_role.allow_instance_s3.name
 }
 
 resource "aws_iam_role_policy" "allow_s3_all" {
-  name = "${var.name}_allow_all"
+  name = "${var.bucket_name}_allow_all"
   role = aws_iam_role.allow_instance_s3.name
 
   policy = <<EOF
@@ -41,8 +41,8 @@ resource "aws_iam_role_policy" "allow_s3_all" {
       ],
       "Effect": "Allow",
       "Resource": [
-                "arn:aws:s3:::${var.name}",
-                "arn:aws:s3:::${var.name}/*"
+                "arn:aws:s3:::${var.bucket_name}",
+                "arn:aws:s3:::${var.bucket_name}/*"
             ]
     }
   ]
@@ -52,7 +52,7 @@ EOF
 }
 
 resource "aws_s3_bucket" "web_bucket" {
-  bucket        = var.name
+  bucket        = var.bucket_name
   acl           = "private"
   force_destroy = true
 
@@ -66,7 +66,7 @@ resource "aws_s3_bucket" "web_bucket" {
         "AWS": "${var.elb_service_account_arn}"
       },
       "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::${var.name}/alb-logs/*"
+      "Resource": "arn:aws:s3:::${var.bucket_name}/alb-logs/*"
     },
     {
       "Effect": "Allow",
@@ -74,7 +74,7 @@ resource "aws_s3_bucket" "web_bucket" {
         "Service": "delivery.logs.amazonaws.com"
       },
       "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::${var.name}/alb-logs/*",
+      "Resource": "arn:aws:s3:::${var.bucket_name}/alb-logs/*",
       "Condition": {
         "StringEquals": {
           "s3:x-amz-acl": "bucket-owner-full-control"
@@ -87,7 +87,7 @@ resource "aws_s3_bucket" "web_bucket" {
         "Service": "delivery.logs.amazonaws.com"
       },
       "Action": "s3:GetBucketAcl",
-      "Resource": "arn:aws:s3:::${var.name}"
+      "Resource": "arn:aws:s3:::${var.bucket_name}"
     }
   ]
 }
