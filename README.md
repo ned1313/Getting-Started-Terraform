@@ -1,71 +1,44 @@
 # Getting-Started-Terraform
 
-Welcome to Terraform - Getting Started.  These exercise files are meant to accompany my course on [Pluralsight](https://app.pluralsight.com/library/courses/terraform-getting-started).  The course was developed using version 0.12.5 of Terraform.  As far as I know there are no coming changes that will significantly impact the validity of these exercise files.  But I also don't control all the plug-ins, providers, and modules used by the configurations. 
+Welcome to Terraform - Getting Started.  These exercise files are meant to accompany my course on [Pluralsight](https://app.pluralsight.com/library/courses/terraform-getting-started).  The course was developed using version 1.0.8 of Terraform. Since the GA of version 1.0, HashiCorp has committed to no breaking changes until version 2.0. All the exercises in this course should be valid as long as you are using Terraform in the 1.X version family. The modules and providers in this course have no such guarantee, so I have pinned the version where applicable.
 
-**UPDATE** - 2020-12-21: The exercise files have been updated for compatibility with Terraform version 0.14.3. There are several changes in the default behavior of Terraform regarding plans, provider version locking, and diffs. Be sure to check out the full [CHANGELOG](https://github.com/hashicorp/terraform/blob/master/CHANGELOG.md) over on their GitHub for more details.
+This version of the course is **significantly** different from the previous version. If you're looking for the exercise files for the older course, they are available on the `pre-1.0` branch of this repository. Those files should work with version 0.14.3 of Terraform, but no guarantees on anything newer.
 
 ## Using the files
 
-Each folder represents a module from the course and is completely self contained.  In each module there will be an example of the *tfvars* file that you will use named *terraform.tfvars.example*.  Simply update the contents of the file and rename it *terraform.tfvars*.  Due to the sensitive nature of the information you place in the *tfvars* file, **do not** check it into source control, especially a public repository.  Some of us - *read me* - have made that mistake before and had to delete AWS access keys post-haste.
+In the course, you are given a Terraform configuration for a basic web application from someone else on the Globomantics team. We are going to make a copy of this configuration and modify it over the length of the course. The `base_web_app` directory has the basic web app configuration, which we will copy over to the `globo_web_app` and start making alterations.
 
-Once you have updated and renamed the *tfvars* file(s), you can run the commands in the *m#_commands.txt* file, where the *#* is the number of the module.  Be sure to run the commands from the working directory of the module.  Or you can just noodle around on the terraform CLI and see what you can discover/break.  If you run into an issue, please submit it as such and I will do my best to remediate it.
+As we progress through the modules, you will be challenged to make updates to the files in `globo_web_app` to meet the evolving needs and requirements of the web application infrastructure. The completed solution for each module is in the `mX_solution` directories. I recommend trying to first write the solution yourself, and then checking your answer against what you see in the solution file.
 
-## AWS Key Pairs
+At the beginning of module three, we will hardcode our AWS keys into the configuration. **You would not do this in any kind of scenario!** I am trying to illustrate a point in the course. *Please do not commit your AWS keys to source control*. Some of us (**me**) have done this in the past and felt very silly. We will move these keys into environment variables in module four, and they shall never again be hardcoded **anywhere**.
 
-One of the most common issues reported by people is confusion over AWS Key Pairs and Regions.  The Terraform configurations make use of us-east-1 (N. Virginia) as the default region.  You can override that region by changing the default or submitting a different value for `var.region`.  The AWS Key Pair you use must be created in the same region you have selected for deployment.  You can create those keys from either the AWS EC2 Console or the AWS CLI.  If you are using the CLI, the process is very simple.
+The suggested commands for each module are in the `commands` directory. You can run these commands to get through the exercises, but I also encourage you to experiment and try things out for yourself.
 
-```console
-aws configure set region your_region_name
-aws ec2 create-key-pair --key-name your_key_name
-```
+## AWS Environment
 
-The json output will include a KeyMaterial section.  Copy and paste the contents of the KeyMaterial section starting with `-----BEGIN RSA PRIVATE KEY-----` and ending with `-----END RSA PRIVATE KEY-----` to a file with a .pem extension.  Then point the *tfvars* entry for `private_key_path` to the full path for the file.
+You will need access to an AWS environment with permissions to create resources in EC2, S3, and IAM. I recommend creating a throwaway account just for this course. The exercises have been tested with AWS region `us-east-1`. The input variable `aws_region` has `us-east-1` set as the default, but you can supply a different region if you prefer. Generally, the exercises should work in any region that has at least three availability zones and an Amazon Linux 2 AMI.
 
-If you are using Windows, remember that the file path backslashes need to be doubled, since the single backslash is the escape character for other special characters.  For instance, the path `C:\Users\Ned\mykey.pem` should be entered as `C:\\Users\\Ned\\mykey.pem`.
-
-## Azure Account
-
-Some of the modules also include an Azure Account and public domain using the Azure DNS service. If you don't have a public domain, you can get an `xyz` domain for about $2. You can also just make up a domain like `tacos.local` and add it as an zone in Azure DNS. The resulting addresses won't be publicly accessible, but you'll at least get a feeling for how it would have worked. 
-
-You can create a service principal in Azure by using the Cloud Shell and following the directions found in Microsoft's [documentation](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli). Make sure to grant the service principal Contributor permissions to the Azure DNS zone. I usually just give it Contributor permissions on the resource group holding the Azure DNS zone. The commands would be like this:
-
-```bash
-# Get the Subscription Id 
-subId=$(az account show --query id -o tsv)
-echo $subId
-# Set the resource group with the Azure DNS zone in it
-rg=DNS_RESOURCE_GROUP
-az ad sp create-for-rbac \
-  --name GettingStartedTerraform \
-  --role Contributor \
-  --scope /subscriptions/$subId/resourceGroups/$rg
-```
-
-Make a note of the `appId`, `password`, and `tenant` in the output. Also grab the subscription ID stored in the `$subId` variable.
-
-I've been asked if you can do the whole thing with AWS Route 53 instead. You can! And that would be an excellent challenge to undertake with your new Terraform chops. I chose to include Azure to demonstrate the multicloud nature of Terraform.
+You will need to generate an AWS access key to run through the exercises. You can do this through the IAM console in a browser (*hint*: it's under security credentials for your user) by following the [official AWS docs](https://aws.amazon.com/premiumsupport/knowledge-center/create-access-key/). I'd recommend assigning the `AdministratorAccess` policy to your user to give you permissions to do everything in the account. Also, enable 2FA for the user account!
 
 ## Line Endings
 
-Another issue I have discovered from time to time is that Terraform doesn't much like the Windows style of ending a line with both a Carriage Return (CR) and a Line Feed (LF), commonly referred to as CRLF.  If you are experiencing strange parsing issues, change the line ending to be Line Feed (LF) only.  In VS Code this can be down by clicking on the CRLF in the lower right corner and changing it to LF.
+An issue I have discovered from time to time is that Terraform doesn't much like the Windows style of ending a line with both a Carriage Return (CR) and a Line Feed (LF), commonly referred to as CRLF.  If you are experiencing strange parsing issues, change the line ending to be Line Feed (LF) only.  In VS Code this can be down by clicking on the CRLF in the lower right corner and changing it to LF. This primarily affects template files or scripts being sent to a Linux machine for processing.
 
 ## MONEY!!!
 
-A gentle reminder about cost.  The course will have you creating resources in AWS and Azure.  Some of the resources are not going to be 100% free.  In most cases I have tried to use the [Free-tier](https://aws.amazon.com/free/) when possible, but in some cases I have elected to use a larger size EC2 instance to demonstrate the possibilities with multiple environments.  
+A gentle reminder about cost.  The course will have you creating resources in AWS.  Some of the resources are not going to be 100% free.  I have tried to use the [Free-tier](https://aws.amazon.com/free/) when possible, but in some cases I have elected to use a larger size EC2 instance to demonstrate the possibilities with multiple environments.  
 
-The DNS zone in Azure is also not completely free.  You are going to need to buy a DNS domain, if you don't already have one, and set the Name Server to use Azure DNS.  If you go with an off-brand TLD like .xyz, you should be able to pick up a domain name for about $0.99 for the first year.  Azure DNS is about $.50 per zone per month and $0.40 per million queries.  All in, you're looking at about $2 for a DNS zone.
-
-When you complete an exercise in the course, be sure to tear down the infrastructure.  Each exercise file ends with `terraform destroy`.  Just run that command and approve the destruction to remove all resources from AWS.
+When you complete an exercise in the course, you can easily tear down the deployed infrastructure using `terraform destroy`. Just run that command and approve the destruction to remove all resources from AWS. Before you start the next module, run `terraform apply` again and you should be right where you started. Isn't infrastructure automation amazing?!
 
 ## Certification
 
-HashiCorp has released the Terraform Certified Associate certification..  You might be wondering if this course fully prepares you for the cert.  **It does not.**  Taking this course along with the [Deep Dive - Terraform](https://app.pluralsight.com/library/courses/deep-dive-terraform) course on Pluralsight will meet most of the learning objectives for the certification, but there is no substitute for running the software on your own and hacking away.
+HashiCorp has released the Terraform Certified Associate certification. You might be wondering if this course fully prepares you for the cert.  **It does not.**  Taking this course along with the [Deep Dive - Terraform](https://app.pluralsight.com/library/courses/deep-dive-terraform) course on Pluralsight will meet most of the learning objectives for the certification, but there is no substitute for running the software on your own and hacking away.
 
 I have coauthored a certification guide which you can find on [Leanpub](https://leanpub.com/terraform-certified/). This is an unofficial guide, but I believe in concert with the Pluralsight courses you will be in a good position to sit the exam.
 
 ## Conclusion
 
-I hope you enjoy taking this course as much as I did creating it.  I'd love to hear feedback and suggestions for revisions.
+I hope you enjoy taking this course as much as I did creating it.  I'd love to hear feedback and suggestions for revisions. Find me on Twitter (@ned1313) or add an issue to this repository.
 
 Thanks and happy automating!
 
