@@ -23,7 +23,7 @@ data "aws_ssm_parameter" "ami" {
 # NETWORKING #
 resource "aws_vpc" "vpc" {
   cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = "true"
+  enable_dns_hostnames = true
 
 }
 
@@ -35,7 +35,7 @@ resource "aws_internet_gateway" "igw" {
 resource "aws_subnet" "subnet1" {
   cidr_block              = "10.0.0.0/24"
   vpc_id                  = aws_vpc.vpc.id
-  map_public_ip_on_launch = "true"
+  map_public_ip_on_launch = true
 }
 
 # ROUTING #
