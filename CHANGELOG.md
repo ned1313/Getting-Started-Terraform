@@ -1,6 +1,6 @@
 **2021-10-07**
 
-Full Course Update
+Full Course Update 
 
 This is a revision of the entire course using Terraform version 1.x. The exercises and content of the course have changed based on feedback and what I've learned presenting Terraform to user groups and individuals. Here are the major changes:
 
