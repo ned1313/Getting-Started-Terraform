@@ -4,10 +4,10 @@
 # to discover availability zones, add subnets, and add an
 # application load balancer, target group, load balancer listener
 # and target group attachment.
-terraform state list
-terraform state show aws_instance.nginx1
+.\terraform state list
+.\terraform state show aws_instance.nginx1
 
-terraform validate
+.\terraform validate
 
 # In case you don't have them set anymore don't forget to run the export commands
 # For Linux and MacOS
@@ -15,8 +15,8 @@ export TF_VAR_aws_access_key=YOUR_ACCESS_KEY
 export TF_VAR_aws_secret_key=YOUR_SECRET_KEY
 
 # For PowerShell
-$env:TF_VAR_aws_access_key="YOUR_ACCESS_KEY"
-$env:TF_VAR_aws_secret_key="YOUR_SECRET_KEY"
+$env:TF_VAR_aws_access_key="AKIAW2FIAW4JLK553E2O"
+$env:TF_VAR_aws_secret_key="vL9dzYaRBRBeqkgOIJDhHmq26ecYcfBQbmPWe3cd"
 
-terraform plan -out m5.tfplan
-terraform apply m5.tfplan
+.\terraform plan -out m5.tfplan
+.\terraform apply "m5.tfplan"

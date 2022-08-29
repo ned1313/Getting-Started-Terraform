@@ -24,8 +24,8 @@ export AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY
 export AWS_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
 
 # For PowerShell
-$env:AWS_ACCESS_KEY_ID="YOUR_ACCESS_KEY"
-$env:AWS_SECRET_ACCESS_KEY="YOUR_SECRET_ACCESS_KEY"
+$env:TF_VAR_aws_access_key="AKIAW2FIAW4JLK553E2O"
+$env:TF_VAR_aws_secret_key="vL9dzYaRBRBeqkgOIJDhHmq26ecYcfBQbmPWe3cd"
 
 terraform plan -out m7.tfplan
 terraform apply m7.tfplan
