@@ -6,7 +6,7 @@ resource "aws_lb" "nginx" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = aws_subnet.subnets[*].id
+  subnets            = module.vpc.public_subnets
 
   enable_deletion_protection = false
 
@@ -27,7 +27,7 @@ resource "aws_lb_target_group" "nginx" {
   name     = "nginx-alb-tg"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.vpc.id
+  vpc_id   = module.vpc.vpc_id
 
   tags = merge(local.common_tags, {
       Name  = "${local.name_prefix}-nginx-alb-tg"
