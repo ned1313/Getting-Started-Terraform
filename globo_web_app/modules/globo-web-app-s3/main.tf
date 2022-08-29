@@ -71,7 +71,7 @@ EOF
 
 ## aws_s3_iam_role_policy
 resource "aws_iam_role_policy" "allow_s3_all" {
-  name = "allow_s3_all"
+  name = "${var.bucket_name}_allow_all"
   role = aws_iam_role.allow_nginx_s3.name
 
   # Terraform's "jsonencode" function converts a
@@ -99,8 +99,4 @@ EOF
 resource "aws_iam_instance_profile" "instance_profile" {
   name = "${var.bucket_name}-instance_profile"
   role = aws_iam_role.allow_nginx_s3.name
-
-  tags = var.common_tags
-
-
 }
