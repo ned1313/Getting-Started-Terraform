@@ -12,8 +12,8 @@ range(var.vpc_subnet_count)
 
 # Prepare config
 terraform init
-terraform fmt -recursive
-terraform validate
+.\terraform fmt -recursive
+.\terraform validate
 
 # For Linux and MacOS
 export AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY
@@ -24,5 +24,5 @@ $env:TF_VAR_aws_access_key="AKIAW2FIAW4JLK553E2O"
 $env:TF_VAR_aws_secret_key="vL9dzYaRBRBeqkgOIJDhHmq26ecYcfBQbmPWe3cd"
 
 # Update the deployment
-terraform plan -out m8.tfplan
-terraform apply m8.tfplan
+.\terraform plan -out m8.tfplan
+.\terraform apply m8.tfplan

@@ -11,14 +11,14 @@ resource "aws_lb" "nginx" {
   enable_deletion_protection = false
 
   access_logs {
-    bucket  = aws_s3_bucket.web_bucket.bucket
+    bucket  = module.web_app_s3.web_bucket.id
     prefix  = "alb-logs"
     enabled = true
   }
 
   tags = merge(local.common_tags, {
-      Name  = "${local.name_prefix}-globo-web-alb"
-    })
+    Name = "${local.name_prefix}-globo-web-alb"
+  })
 
 }
 ## aws_lb_target_group
@@ -30,8 +30,8 @@ resource "aws_lb_target_group" "nginx" {
   vpc_id   = module.vpc.vpc_id
 
   tags = merge(local.common_tags, {
-      Name  = "${local.name_prefix}-nginx-alb-tg"
-    })
+    Name = "${local.name_prefix}-nginx-alb-tg"
+  })
 }
 
 ## aws_lb_listener
@@ -48,8 +48,8 @@ resource "aws_lb_listener" "nginx" {
   }
 
   tags = merge(local.common_tags, {
-      Name  = "${local.name_prefix}-nginx-alb-listener"
-    })
+    Name = "${local.name_prefix}-nginx-alb-listener"
+  })
 
 }
 

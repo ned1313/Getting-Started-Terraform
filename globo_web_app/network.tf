@@ -13,19 +13,19 @@ data "aws_availability_zones" "available" {}
 
 # NETWORKING #
 module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+  source  = "terraform-aws-modules/vpc/aws"
   version = "3.14.2"
 
   cidr = var.vpc_cidr_block
 
   azs            = slice(data.aws_availability_zones.available.names, 0, (var.vpc_subnet_count))
-  public_subnets  = [for subnet in range(var.vpc_subnet_count) : cidrsubnet(var.vpc_cidr_block, 8, subnet)]
+  public_subnets = [for subnet in range(var.vpc_subnet_count) : cidrsubnet(var.vpc_cidr_block, 8, subnet)]
 
   enable_nat_gateway = false
   enable_vpn_gateway = false
-  
+
   tags = merge(local.common_tags, {
-    Name  = "${local.name_prefix}-vpc"
+    Name = "${local.name_prefix}-vpc"
   })
 
 }
@@ -53,8 +53,8 @@ resource "aws_security_group" "alb_sg" {
   }
 
   tags = merge(local.common_tags, {
-      Name  = "${local.name_prefix}-alb_sg"
-    })
+    Name = "${local.name_prefix}-alb_sg"
+  })
 
 }
 
@@ -80,8 +80,8 @@ resource "aws_security_group" "nginx-sg" {
   }
 
   tags = merge(local.common_tags, {
-      Name  = "${local.name_prefix}-nginx-sg"
-    })
+    Name = "${local.name_prefix}-nginx-sg"
+  })
 
 }
 
