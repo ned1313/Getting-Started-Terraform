@@ -25,44 +25,39 @@ variable "aws_cidr_block" {
 
 }
 
-variable "vpc_cidr_block" {
-  type        = string
-  description = "Simplifying cidr_block"
-  default     = "10.0.0.0/16"
-
-}
-
-variable "vpc_subnet_count" {
-  type        = number
-  description = "Number of subnets to create"
-  default     = 2
-}
-
-variable "aws_instance_count" {
-  type        = number
-  description = "Number of instance to create"
-  default     = 2
-}
-
 variable "enable_dns_hostnames" {
   type        = bool
   description = "Enable DNS hostnames in VPC"
   default     = true
 }
 
-#variable "billing-log" {}
+
+variable "map_public_ip_on_launch" {
+  type        = bool
+  description = "Map a public IP address for Subnet instances"
+  default     = true
+}
 
 
-
-variable "aws_instance_sizes" {
+variable "vpc_cidr_block" {
   type        = map(string)
-  description = "Regions to use for AWS resources"
-  default = {
-    small  = "t2.micro"
-    medium = "t2.small"
-    large  = "t2.large"
-  }
-  sensitive = false
+  description = "Simplifying cidr_block"
+}
+
+variable "vpc_subnet_count" {
+  type        = map(number)
+  description = "Number of subnets to create"
+
+}
+
+variable "aws_instance_count" {
+  type        = map(number)
+  description = "Number of instance to create"
+}
+
+variable "aws_instance_type" {
+  type        = map(string)
+  description = "Type for EC2 Instance"
 }
 
 variable "company" {

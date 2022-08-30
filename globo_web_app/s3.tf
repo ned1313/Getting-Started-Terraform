@@ -1,6 +1,4 @@
-
 ## s3 bucket module
-
 
 module "web_app_s3" {
   source = "./modules/globo-web-app-s3"
@@ -24,8 +22,8 @@ resource "aws_s3_bucket_object" "website_content" {
   key    = each.value
   source = ".${each.value}"
 
-
   tags = local.common_tags
+
 }
 
 

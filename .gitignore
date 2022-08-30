@@ -15,4 +15,5 @@
 *.hcl
 
 *.exe
-
+go.mod
+go.sum
