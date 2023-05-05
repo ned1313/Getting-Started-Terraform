@@ -32,7 +32,7 @@ resource "aws_internet_gateway" "app" {
 
 }
 
-resource "aws_subnet" "subnet1" {
+resource "aws_subnet" "public_subnet1" {
   cidr_block              = "10.0.0.0/24"
   vpc_id                  = aws_vpc.app.id
   map_public_ip_on_launch = true
