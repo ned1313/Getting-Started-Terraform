@@ -49,7 +49,7 @@ resource "aws_route_table" "app" {
 }
 
 resource "aws_route_table_association" "app_subnet1" {
-  subnet_id      = aws_subnet.subnet1.id
+  subnet_id      = aws_subnet.public_subnet1.id
   route_table_id = aws_route_table.app.id
 }
 
@@ -80,7 +80,7 @@ resource "aws_security_group" "nginx_sg" {
 resource "aws_instance" "nginx1" {
   ami                    = nonsensitive(data.aws_ssm_parameter.amzn2_linux.value)
   instance_type          = "t2.micro"
-  subnet_id              = aws_subnet.subnet1.id
+  subnet_id              = aws_subnet.public_subnet1.id
   vpc_security_group_ids = [aws_security_group.nginx_sg.id]
 
   user_data = <<EOF
