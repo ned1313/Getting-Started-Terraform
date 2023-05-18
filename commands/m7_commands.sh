@@ -9,9 +9,13 @@ min(42,5,16)
 lower("TACOCAT")
 cidrsubnet(var.vpc_cidr_block, 8, 0)
 cidrhost(cidrsubnet(var.vpc_cidr_block, 8, 0),5)
+
+local.common_tags
+local.common_tags["company"]
+local.common_tags["missing"]
 lookup(local.common_tags, "company", "Unknown")
 lookup(local.common_tags, "missing", "Unknown")
-local.common_tags
+
 
 # Update the configuration by adding count and for_each loops and
 # adding functions where helpful.

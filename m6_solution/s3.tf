@@ -7,11 +7,6 @@ resource "aws_s3_bucket" "web_bucket" {
 
 }
 
-resource "aws_s3_bucket_acl" "web_bucket" {
-  bucket = aws_s3_bucket.web_bucket.id
-  acl    = "private"
-}
-
 resource "aws_s3_bucket_policy" "web_bucket" {
   bucket = aws_s3_bucket.web_bucket.id
   policy = <<POLICY

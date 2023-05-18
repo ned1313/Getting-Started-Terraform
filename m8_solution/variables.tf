@@ -1,12 +1,6 @@
-variable "naming_prefix" {
-  type        = string
-  description = "Naming prefix for resources"
-  default     = "globoweb"
-}
-
 variable "aws_region" {
   type        = string
-  description = "Region for AWS Resources"
+  description = "AWS region to use for resources."
   default     = "us-east-1"
 }
 
@@ -22,10 +16,16 @@ variable "vpc_cidr_block" {
   default     = "10.0.0.0/16"
 }
 
-variable "vpc_subnet_count" {
+variable "vpc_public_subnet_count" {
   type        = number
-  description = "Number of subnets to create in VPC"
+  description = "Number of public subnets to create."
   default     = 2
+}
+
+variable "vpc_public_subnets_cidr_block" {
+  type        = list(string)
+  description = "CIDR Block for Public Subnets in VPC"
+  default     = ["10.0.0.0/24", "10.0.1.0/24"]
 }
 
 variable "map_public_ip_on_launch" {
@@ -42,7 +42,7 @@ variable "instance_type" {
 
 variable "instance_count" {
   type        = number
-  description = "Number of instances to create in VPC"
+  description = "Number of instances to create"
   default     = 2
 }
 
@@ -60,4 +60,16 @@ variable "project" {
 variable "billing_code" {
   type        = string
   description = "Billing code for resource tagging"
+}
+
+variable "naming_prefix" {
+  type        = string
+  description = "Naming prefix for all resources."
+  default     = "globo-web-app"
+}
+
+variable "environment" {
+  type        = string
+  description = "Environment for deployment"
+  default     = "development"
 }

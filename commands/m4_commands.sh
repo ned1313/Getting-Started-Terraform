@@ -16,8 +16,8 @@ export TF_VAR_aws_access_key=YOUR_ACCESS_KEY
 export TF_VAR_aws_secret_key=YOUR_SECRET_KEY
 
 # For PowerShell
-$env:TF_VAR_aws_access_key="YOUR_ACCESS_KEY"
-$env:TF_VAR_aws_secret_key="YOUR_SECRET_KEY"
+$env:TF_VAR_aws_access_key="AKIA6KUVKO2KOEM6N5WY"
+$env:TF_VAR_aws_secret_key="viaC344ZzyZWbuD0IHAJnZOEbgaw9N/4OjzI2kC0"
 
 # Now we can run plan without all that extra stuff
 terraform plan -out m4.tfplan

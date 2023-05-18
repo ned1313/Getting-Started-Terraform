@@ -6,9 +6,9 @@
 terraform console
 
 # Test out the range function
-range(var.vpc_subnet_count)
+range(var.vpc_public_subnet_count)
 # Try it in a for expression
-[for subnet in range(var.vpc_subnet_count): cidrsubnet(var.vpc_cidr_block, 8, subnet)]
+[for subnet in range(var.vpc_public_subnet_count): cidrsubnet(var.vpc_cidr_block, 8, subnet)]
 
 # Prepare config
 terraform init
