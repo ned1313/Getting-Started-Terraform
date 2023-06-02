@@ -1,5 +1,5 @@
 # You can find the installer info for Terraform here:
-# https://www.terraform.io/downloads.html
+https://developer.hashicorp.com/terraform/downloads
 
 # First we'll start by making sure Terraform is installed and check out the
 # help command baked in to the cli.
