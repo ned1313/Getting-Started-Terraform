@@ -1,3 +1,13 @@
+**2023-06-02**
+
+Partial Course Update
+
+This is a revision of the previous course using Terraform 1.4. The exercises and content of the course have changed based on feedback and updates to the behavior and features available in Terraform.
+
+I have removed some content and I am moving it to *Terraform - Deep Dive*. I also added more context around state data and how Terraform decides to create, update, and delete resources based on configuration, state, and the target environment.
+
+The previous version of the course will remain available under branch `v3`. 
+
 **2021-10-07**
 
 Full Course Update
