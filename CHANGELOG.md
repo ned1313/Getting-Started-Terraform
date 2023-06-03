@@ -6,7 +6,15 @@ This is a revision of the previous course using Terraform 1.4. The exercises and
 
 I have removed some content and I am moving it to *Terraform - Deep Dive*. I also added more context around state data and how Terraform decides to create, update, and delete resources based on configuration, state, and the target environment.
 
-The previous version of the course will remain available under branch `v3`. 
+The previous version of the course will remain available under branch `v3`.
+
+* Updated course to use version 4.X of AWS provider
+* Removed module 9 of the course that dealt with workspaces
+* Rewrote s3.tf to use new AWS resources
+* Changed resource naming to be more descriptive
+* Updated variable names to be more accurate
+* Moved website content to a local value
+* Updated version of VPC module being used
 
 **2021-10-07**
 
