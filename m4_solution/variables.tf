@@ -1,20 +1,22 @@
 variable "aws_access_key" {
   type        = string
-  description = "AWS Access Key"
+  description = "AWS access key"
   sensitive   = true
 }
 
 variable "aws_secret_key" {
   type        = string
-  description = "AWS Secret Key"
+  description = "AWS secret key"
   sensitive   = true
 }
 
 variable "aws_region" {
   type        = string
-  description = "Region for AWS Resources"
+  description = "AWS region for deployment"
   default     = "us-east-1"
 }
+
+## Add these after the first challenge
 
 variable "enable_dns_hostnames" {
   type        = bool
@@ -28,7 +30,7 @@ variable "vpc_cidr_block" {
   default     = "10.0.0.0/16"
 }
 
-variable "vpc_subnet1_cidr_block" {
+variable "vpc_public_subnet1_cidr_block" {
   type        = string
   description = "CIDR Block for Subnet 1 in VPC"
   default     = "10.0.0.0/24"
@@ -45,6 +47,8 @@ variable "instance_type" {
   description = "Type for EC2 Instnace"
   default     = "t2.micro"
 }
+
+## Add these after the local value discussion
 
 variable "company" {
   type        = string

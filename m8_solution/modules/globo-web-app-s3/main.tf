@@ -1,61 +1,14 @@
 # S3 Bucket config#
-resource "aws_iam_role" "allow_instance_s3" {
-  name = "${var.bucket_name}_allow_instance_s3"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-EOF
+resource "aws_s3_bucket" "web_bucket" {
+  bucket        = var.bucket_name
+  force_destroy = true
 
   tags = var.common_tags
 
 }
 
-resource "aws_iam_instance_profile" "instance_profile" {
-  name = "${var.bucket_name}_instance_profile"
-  role = aws_iam_role.allow_instance_s3.name
-}
-
-resource "aws_iam_role_policy" "allow_s3_all" {
-  name = "${var.bucket_name}_allow_all"
-  role = aws_iam_role.allow_instance_s3.name
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "s3:*"
-      ],
-      "Effect": "Allow",
-      "Resource": [
-                "arn:aws:s3:::${var.bucket_name}",
-                "arn:aws:s3:::${var.bucket_name}/*"
-            ]
-    }
-  ]
-}
-EOF
-
-}
-
-resource "aws_s3_bucket" "web_bucket" {
-  bucket        = var.bucket_name
-  acl           = "private"
-  force_destroy = true
-
+resource "aws_s3_bucket_policy" "web_bucket" {
+  bucket = aws_s3_bucket.web_bucket.id
   policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -93,6 +46,57 @@ resource "aws_s3_bucket" "web_bucket" {
 }
     POLICY
 
+}
+
+resource "aws_iam_role" "allow_nginx_s3" {
+  name = "${var.bucket_name}-allow_nginx_s3"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+
   tags = var.common_tags
+}
+
+resource "aws_iam_instance_profile" "nginx_profile" {
+  name = "${var.bucket_name}-nginx_profile"
+  role = aws_iam_role.allow_nginx_s3.name
+
+  tags = var.common_tags
+}
+
+resource "aws_iam_role_policy" "allow_s3_all" {
+  name = "${var.bucket_name}-allow_s3_all"
+  role = aws_iam_role.allow_nginx_s3.name
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "s3:*"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+                "arn:aws:s3:::${var.bucket_name}",
+                "arn:aws:s3:::${var.bucket_name}/*"
+            ]
+    }
+  ]
+}
+EOF
 
 }

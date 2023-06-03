@@ -12,7 +12,7 @@ provider "aws" {
 # DATA
 ##################################################################################
 
-data "aws_ssm_parameter" "ami" {
+data "aws_ssm_parameter" "amzn2_linux" {
   name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
 }
 
@@ -21,49 +21,49 @@ data "aws_ssm_parameter" "ami" {
 ##################################################################################
 
 # NETWORKING #
-resource "aws_vpc" "vpc" {
+resource "aws_vpc" "app" {
   cidr_block           = var.vpc_cidr_block
   enable_dns_hostnames = var.enable_dns_hostnames
 
   tags = local.common_tags
 }
 
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.vpc.id
+resource "aws_internet_gateway" "app" {
+  vpc_id = aws_vpc.app.id
 
   tags = local.common_tags
 }
 
-resource "aws_subnet" "subnet1" {
-  cidr_block              = var.vpc_subnet1_cidr_block
-  vpc_id                  = aws_vpc.vpc.id
+resource "aws_subnet" "public_subnet1" {
+  cidr_block              = var.vpc_public_subnet1_cidr_block
+  vpc_id                  = aws_vpc.app.id
   map_public_ip_on_launch = var.map_public_ip_on_launch
 
   tags = local.common_tags
 }
 
 # ROUTING #
-resource "aws_route_table" "rtb" {
-  vpc_id = aws_vpc.vpc.id
+resource "aws_route_table" "app" {
+  vpc_id = aws_vpc.app.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
+    gateway_id = aws_internet_gateway.app.id
   }
 
   tags = local.common_tags
 }
 
-resource "aws_route_table_association" "rta-subnet1" {
-  subnet_id      = aws_subnet.subnet1.id
-  route_table_id = aws_route_table.rtb.id
+resource "aws_route_table_association" "app_public_subnet1" {
+  subnet_id      = aws_subnet.public_subnet1.id
+  route_table_id = aws_route_table.app.id
 }
 
 # SECURITY GROUPS #
 # Nginx security group 
-resource "aws_security_group" "nginx-sg" {
+resource "aws_security_group" "nginx_sg" {
   name   = "nginx_sg"
-  vpc_id = aws_vpc.vpc.id
+  vpc_id = aws_vpc.app.id
 
   # HTTP access from anywhere
   ingress {
@@ -86,10 +86,10 @@ resource "aws_security_group" "nginx-sg" {
 
 # INSTANCES #
 resource "aws_instance" "nginx1" {
-  ami                    = nonsensitive(data.aws_ssm_parameter.ami.value)
+  ami                    = nonsensitive(data.aws_ssm_parameter.amzn2_linux.value)
   instance_type          = var.instance_type
-  subnet_id              = aws_subnet.subnet1.id
-  vpc_security_group_ids = [aws_security_group.nginx-sg.id]
+  subnet_id              = aws_subnet.public_subnet1.id
+  vpc_security_group_ids = [aws_security_group.nginx_sg.id]
 
   user_data = <<EOF
 #! /bin/bash
