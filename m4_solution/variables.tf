@@ -45,7 +45,7 @@ variable "map_public_ip_on_launch" {
 variable "instance_type" {
   type        = string
   description = "Type for EC2 Instnace"
-  default     = "t2.micro"
+  default     = "t3.micro"
 }
 
 ## Add these after the local value discussion
